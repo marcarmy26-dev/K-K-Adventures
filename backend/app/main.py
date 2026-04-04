@@ -80,6 +80,18 @@ class StreamRow(Base):
 
 
 if engine:
+    # One-time fix: drop old streams table with Mux columns, recreate with Cloudflare columns
+    try:
+        from sqlalchemy import text as _text, inspect as _inspect
+        _insp = _inspect(engine)
+        if _insp.has_table("streams"):
+            _cols = [c["name"] for c in _insp.get_columns("streams")]
+            if "cf_input_uid" not in _cols:
+                with engine.connect() as _conn:
+                    _conn.execute(_text("DROP TABLE streams"))
+                    _conn.commit()
+    except Exception:
+        pass
     Base.metadata.create_all(bind=engine)
 
 # ── Auth utilities ────────────────────────────────────────────────────
