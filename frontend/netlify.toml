@@ -1,10 +1,14 @@
-[[redirects]] 
-  from = "/api/*" 
-  to = "https://k-k-adventures-1.onrender.com/api/:splat" 
-  status = 200 
-  force = true 
- 
-[[headers]] 
-  for = "/*" 
-  [headers.values] 
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://k-k-adventures-1.onrender.com wss://k-k-adventures-1.onrender.com https://*.cloudflarestream.com;"
+[build]
+  publish = "frontend"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://k-k-adventures-1.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: https://*.cloudflarestream.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://k-k-adventures-1.onrender.com wss://k-k-adventures-1.onrender.com https://*.cloudflarestream.com https://stun.cloudflare.com;"
+    Permissions-Policy = "camera=(self), microphone=(self)"
