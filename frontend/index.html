@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Keralee & Kayden Adventure Channel</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3/dist/mux-player.min.js" defer></script>
   <style>
     :root{
       --bg1:#09111f; --bg2:#12203b; --panel:rgba(18,28,54,.96); --line:rgba(255,255,255,.08);
@@ -38,6 +39,7 @@
     .btn-secondary{background:linear-gradient(135deg,#7f8dff,#9b7cff);color:#fff}
     .btn-danger{background:linear-gradient(135deg,#ff6d6d,#ff8e8e);color:#fff}
     .btn-ghost{color:#fff}
+    .btn-sm{padding:9px 14px;font-size:.92rem}
     .page-shell{padding:24px 0 40px}
     .page{display:none}
     .page.active{display:block}
@@ -88,11 +90,11 @@
     .locked-banner{background:rgba(255,211,109,.12);color:#fff6d1;border-color:rgba(255,211,109,.18)}
     .comment-safe-note{background:rgba(110,183,255,.12);color:#e4f1ff;border-color:rgba(110,183,255,.2)}
     .preview{aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(255,111,182,.22),rgba(110,183,255,.18));border:1px solid rgba(255,255,255,.1);position:relative;display:grid;place-items:center}
-    .preview video{width:100%;height:100%;object-fit:cover;background:#060b16}
+    .preview video,.preview mux-player{width:100%;height:100%;object-fit:cover;background:#060b16}
     .preview-placeholder{text-align:center;padding:20px;color:#fff}
-    .live-badge{position:absolute;left:14px;top:14px;background:rgba(255,58,58,.92);display:none}
+    .live-badge{position:absolute;left:14px;top:14px;background:rgba(255,58,58,.92);display:none;z-index:2}
     .live-badge.show{display:inline-flex}
-    .scene-pill{position:absolute;right:14px;top:14px;background:rgba(7,12,25,.72)}
+    .scene-pill{position:absolute;right:14px;top:14px;background:rgba(7,12,25,.72);z-index:2}
     .seat-card{display:grid;gap:12px;align-content:start;background:rgba(255,255,255,.05)}
     .seat-visual{min-height:78px;border-radius:16px;border:1px dashed rgba(255,255,255,.15);display:grid;place-items:center;text-align:center;padding:14px;color:var(--muted);background:rgba(255,255,255,.03)}
     .upload-zone{padding:20px;border:2px dashed rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.04)}
@@ -112,22 +114,31 @@
     input::placeholder,textarea::placeholder{color:#9fb0d6}
     .comment-list{display:grid;gap:12px}
     .comment-item small{color:var(--muted)}
-    .locked .manage-only,.locked .edit-only{display:none!important}
-    .unlocked .viewer-note{display:none!important}
+    /* Role-based visibility */
+    .host-only{display:none!important}
+    body.role-host .host-only{display:revert!important}
+    body.role-host .viewer-note{display:none!important}
     .hidden{display:none!important}
     .footer{padding:26px 0 46px;color:var(--muted);text-align:center;line-height:1.7}
     .empty-state{padding:18px;border-radius:16px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.12);color:var(--muted);text-align:center}
     .modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,7,16,.78)}
     .modal.show{display:flex}
-    .modal-card{width:min(760px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:22px;background:linear-gradient(180deg,rgba(18,28,54,.98),rgba(8,13,27,.99));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+    .modal-card{width:min(480px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:22px;background:linear-gradient(180deg,rgba(18,28,54,.98),rgba(8,13,27,.99));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
     .modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
     .close-btn{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;cursor:pointer;font-size:1.1rem}
     .copied{color:#dcfff2;font-weight:700;min-height:1.1em}
+    .error-msg{color:var(--danger);font-weight:700;min-height:1.1em}
+    .tab-row{display:flex;gap:4px;margin-bottom:14px}
+    .tab-btn{flex:1;padding:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:14px;cursor:pointer;font-weight:700;text-align:center;transition:.18s}
+    .tab-btn.active{background:linear-gradient(135deg,var(--gold),#ffb959);color:#0d1529;border-color:transparent}
+    .user-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(110,225,182,.14);border:1px solid rgba(110,225,182,.25);color:var(--ok);font-weight:700;font-size:.92rem}
+    .stream-info{margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,211,109,.1);border:1px solid rgba(255,211,109,.2);font-size:.92rem;line-height:1.6;word-break:break-all}
+    .stream-info code{background:rgba(0,0,0,.3);padding:2px 8px;border-radius:8px;font-size:.88rem}
     @media (max-width:1080px){.three-col,.studio-grid,.comment-grid,.route-grid,.studio-seats{grid-template-columns:1fr 1fr}}
     @media (max-width:900px){.hero,.two-col,.three-col,.studio-grid,.comment-grid,.route-grid,.hero-side,.studio-seats,.form-row{grid-template-columns:1fr}}
   </style>
 </head>
-<body class="locked">
+<body>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <div class="brand">
@@ -147,18 +158,21 @@
           <a href="#/photos">Photos</a>
           <a href="#/journal">Journal</a>
         </nav>
-        <button id="openAccessBtn" class="btn btn-ghost" type="button">Internal Access</button>
+        <span id="userBadge" class="user-badge hidden"></span>
+        <button id="authBtn" class="btn btn-ghost" type="button">Sign In</button>
+        <button id="logoutBtn" class="btn btn-ghost hidden" type="button">Sign Out</button>
       </div>
     </div>
   </header>
 
   <main class="wrap page-shell">
+    <!-- HOME -->
     <section class="page active" data-page="home">
       <div class="hero">
         <article class="card hero-card">
           <div class="eyebrow">🌟 Creator home for Keralee & Kayden</div>
           <h1><span class="gradient-text">Big adventures.</span><br>Big laughs.<br>Big imagination.</h1>
-          <p>This version behaves like a real site map. Users can open dedicated pages for Channels, Live Studio, Videos, Shorts, Photos, Journal, and separate live pages for Keralee Solo, Kayden Solo, and Together Studio.</p>
+          <p>Watch live streams, leave comments, and follow Keralee & Kayden's adventures. Sign in to join the fun!</p>
           <div class="hero-actions">
             <button class="btn btn-primary" type="button" data-route="live">Open Live Studio</button>
             <button class="btn btn-secondary" type="button" data-route="channels">View Channels</button>
@@ -166,76 +180,87 @@
           </div>
         </article>
         <aside class="hero-side">
-          <div class="status-card"><strong>Separate pages</strong><div class="muted">Each section now has its own route-style page.</div></div>
-          <div class="status-card"><strong>Studio pop-out</strong><div class="muted">Solo and shared studio pages can open in a new tab.</div></div>
-          <div class="status-card"><strong>Live comments</strong><div class="muted">Each studio page includes a comment feed module.</div></div>
-          <div class="status-card"><strong>Profanity block</strong><div class="muted">Family-safe word blocking is enabled in the prototype.</div></div>
+          <div class="status-card"><strong>Live streaming</strong><div class="muted">Watch Keralee & Kayden go live from their studio.</div></div>
+          <div class="status-card"><strong>Studio channels</strong><div class="muted">Solo and shared studio pages with dedicated streams.</div></div>
+          <div class="status-card"><strong>Live comments</strong><div class="muted">Leave family-safe comments during live sessions.</div></div>
+          <div class="status-card"><strong>Profanity filter</strong><div class="muted">All comments are filtered for family-safe language.</div></div>
         </aside>
       </div>
-      <div class="safe-note"><strong>Important:</strong> this single-file version behaves like separate pages in one HTML file. In the real Netlify/FastAPI build, these should become actual routes or SPA pages, and comments should move to a real backend with moderation and WebSocket updates.</div>
     </section>
 
+    <!-- CHANNELS -->
     <section class="page" data-page="channels">
-      <div class="section-head"><div><h2>Featured channels</h2><p>Each channel routes to its own dedicated studio page and can pop out into a separate browser tab.</p></div></div>
+      <div class="section-head"><div><h2>Featured channels</h2><p>Each channel has its own dedicated studio page and live stream.</p></div></div>
       <div class="three-col">
         <article class="route-card">
           <div class="person-row"><div class="person-info"><div class="avatar avatar-k">K</div><div><h3>Keralee Solo</h3><div class="muted">Toy reviews • product demos • bright creator lane</div></div></div><span class="tag">Age 9</span></div>
-          <div class="tag-row"><span class="tag">Solo page</span><span class="tag">Live comments</span><span class="tag">Pop-out tab</span></div>
+          <div class="tag-row"><span class="tag">Solo page</span><span class="tag">Live stream</span><span class="tag">Comments</span></div>
           <p class="muted">Dedicated live page for Keralee's streams and community comments.</p>
-          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-keralee">Open Page</button><button class="btn btn-ghost" type="button" data-popout="studio-keralee">Pop Out</button></div>
+          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-keralee">Open Page</button></div>
         </article>
         <article class="route-card">
           <div class="person-row"><div class="person-info"><div class="avatar avatar-kd">K</div><div><h3>Kayden Solo</h3><div class="muted">Gaming day • wins • fun highlights</div></div></div><span class="tag">Age 8</span></div>
-          <div class="tag-row"><span class="tag">Solo page</span><span class="tag">Live comments</span><span class="tag">Pop-out tab</span></div>
+          <div class="tag-row"><span class="tag">Solo page</span><span class="tag">Live stream</span><span class="tag">Comments</span></div>
           <p class="muted">Dedicated live page for Kayden's gaming sessions and audience chat.</p>
-          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-kayden">Open Page</button><button class="btn btn-ghost" type="button" data-popout="studio-kayden">Pop Out</button></div>
+          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-kayden">Open Page</button></div>
         </article>
         <article class="route-card">
           <div class="person-row"><div class="person-info"><div class="avatar avatar-duo">2</div><div><h3>Together Studio</h3><div class="muted">Sibling collabs • shared episodes • two-laptop model</div></div></div><span class="tag">Studio</span></div>
-          <div class="tag-row"><span class="tag">Shared page</span><span class="tag">Live comments</span><span class="tag">Pop-out tab</span></div>
+          <div class="tag-row"><span class="tag">Shared page</span><span class="tag">Live stream</span><span class="tag">Comments</span></div>
           <p class="muted">Dedicated shared page for both hosts together, with comments and channel-level moderation.</p>
-          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-together">Open Page</button><button class="btn btn-ghost" type="button" data-popout="studio-together">Pop Out</button></div>
+          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-together">Open Page</button></div>
         </article>
       </div>
     </section>
 
+    <!-- LIVE DIRECTORY -->
     <section class="page" data-page="live">
-      <div class="section-head"><div><h2>Live Studio directory</h2><p>This acts as the hub page for the dedicated studio pages. In the real deployment, each item should be its own URL route.</p></div></div>
+      <div class="section-head"><div><h2>Live Studio directory</h2><p>See which channels are live and jump into a stream.</p></div></div>
       <div class="route-grid">
-        <article class="route-card"><h3>Keralee Live Page</h3><p class="muted">Focused live page for toy and product reviews with comments.</p><div class="action-row"><button class="btn btn-secondary" type="button" data-route="studio-keralee">Open</button><button class="btn btn-ghost" type="button" data-popout="studio-keralee">Pop Out</button></div></article>
-        <article class="route-card"><h3>Kayden Live Page</h3><p class="muted">Focused gaming page with live viewer comments and moderation controls.</p><div class="action-row"><button class="btn btn-secondary" type="button" data-route="studio-kayden">Open</button><button class="btn btn-ghost" type="button" data-popout="studio-kayden">Pop Out</button></div></article>
-        <article class="route-card"><h3>Together Studio Live Page</h3><p class="muted">Shared sibling channel page with combined comments and featured stream layout.</p><div class="action-row"><button class="btn btn-secondary" type="button" data-route="studio-together">Open</button><button class="btn btn-ghost" type="button" data-popout="studio-together">Pop Out</button></div></article>
+        <article class="route-card"><h3>Keralee Live</h3><p class="muted">Toy and product reviews with live comments.</p><div class="action-row"><span class="pill" data-live-status="studio-keralee">Offline</span><button class="btn btn-secondary" type="button" data-route="studio-keralee">Watch</button></div></article>
+        <article class="route-card"><h3>Kayden Live</h3><p class="muted">Gaming sessions with live viewer comments.</p><div class="action-row"><span class="pill" data-live-status="studio-kayden">Offline</span><button class="btn btn-secondary" type="button" data-route="studio-kayden">Watch</button></div></article>
+        <article class="route-card"><h3>Together Studio</h3><p class="muted">Sibling channel with combined comments.</p><div class="action-row"><span class="pill" data-live-status="studio-together">Offline</span><button class="btn btn-secondary" type="button" data-route="studio-together">Watch</button></div></article>
       </div>
     </section>
 
+    <!-- STUDIO: KERALEE -->
     <section class="page" data-page="studio-keralee">
-      <div class="section-head"><div><h2>Keralee Live Page</h2><p>Dedicated live page for Keralee's solo streams with comments and family-safe filtering.</p></div></div>
+      <div class="section-head"><div><h2>Keralee Live Page</h2><p>Keralee's solo stream with live comments and family-safe filtering.</p></div></div>
       <div class="studio-grid">
         <article class="panel">
-          <div class="toolbar"><span class="pill">Keralee Solo</span><button class="chip" type="button" data-popout="studio-keralee">Pop Out Page</button></div>
-          <div class="preview" style="margin-top:14px;">
-            <span class="live-badge" data-live-badge="studio-keralee">LIVE DEMO</span>
+          <div class="toolbar"><span class="pill">Keralee Solo</span><span class="pill" data-live-status="studio-keralee">Offline</span></div>
+          <div class="preview" style="margin-top:14px;" data-preview="studio-keralee">
+            <span class="live-badge" data-live-badge="studio-keralee">LIVE</span>
             <span class="scene-pill">Keralee Solo View</span>
-            <video autoplay muted playsinline data-camera-preview="studio-keralee"></video>
-            <div class="preview-placeholder" data-camera-placeholder="studio-keralee"><h3 style="margin-bottom:10px;">Keralee camera preview</h3><p class="muted" style="margin:0;color:#dfe8ff;">Practice toy reviews, product reactions, and cheerful intros here.</p></div>
+            <!-- Host sees camera, viewer sees Mux player -->
+            <video autoplay muted playsinline data-camera-preview="studio-keralee" class="host-only"></video>
+            <div data-player-slot="studio-keralee"></div>
+            <div class="preview-placeholder" data-camera-placeholder="studio-keralee"><h3 style="margin-bottom:10px;">Keralee's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Keralee goes live.</p></div>
           </div>
-          <div class="action-row" style="margin-top:14px;"><button class="btn btn-primary" type="button" data-camera-start="studio-keralee">Turn On Camera</button><button class="btn btn-danger" type="button" data-camera-stop="studio-keralee">Turn Off Camera</button><button class="btn btn-secondary" type="button" data-live-toggle="studio-keralee">Go Live (Demo)</button></div>
-          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel page.</div>
+          <!-- Host controls -->
+          <div class="action-row host-only" style="margin-top:14px;">
+            <button class="btn btn-primary" type="button" data-camera-start="studio-keralee">Turn On Camera</button>
+            <button class="btn btn-danger" type="button" data-camera-stop="studio-keralee">Turn Off Camera</button>
+            <button class="btn btn-secondary" type="button" data-go-live="studio-keralee">Go Live</button>
+            <button class="btn btn-danger hidden" type="button" data-stop-live="studio-keralee">Stop Stream</button>
+          </div>
+          <div class="stream-info hidden" data-stream-info="studio-keralee"></div>
+          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
         <article class="panel">
           <h3>About Keralee's page</h3>
           <div class="tag-row"><span class="tag">Toy reviews</span><span class="tag">Product demos</span><span class="tag">Live chat</span></div>
-          <p class="muted">In the real hosted version, this page should be an actual route with its own live room, comment stream, and moderation tools.</p>
-          <ul class="feature-list"><li>Dedicated route or page for Keralee's content</li><li>Live comments tied to this channel only</li><li>Pop-out page option for viewers and moderators</li></ul>
+          <p class="muted">Watch Keralee's live streams and leave family-safe comments. Hosts can manage the stream and moderate comments.</p>
+          <ul class="feature-list"><li>Live streaming powered by Mux</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
         </article>
       </div>
       <div class="comment-grid" style="margin-top:18px;">
         <article class="panel">
-          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Comments appear on this channel feed immediately in the prototype.</div></div><span class="comment-status">Family-safe mode on</span></div>
+          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Comments are shared across all viewers in real time.</div></div><span class="comment-status">Family-safe mode on</span></div>
           <form data-comment-form="studio-keralee">
             <div class="form-row"><label>Display name<input type="text" name="author" placeholder="Your name" required></label><label>Channel<input type="text" value="Keralee Solo" disabled></label></div>
             <label>Comment<textarea name="message" placeholder="Leave a kind, family-safe comment..." required></textarea></label>
-            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost manage-only" type="button" data-clear-comments="studio-keralee">Clear Comments</button></div>
+            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost host-only" type="button" data-clear-comments="studio-keralee">Clear Comments</button></div>
             <div class="copied" data-comment-feedback="studio-keralee"></div>
           </form>
         </article>
@@ -243,34 +268,42 @@
       </div>
     </section>
 
+    <!-- STUDIO: KAYDEN -->
     <section class="page" data-page="studio-kayden">
-      <div class="section-head"><div><h2>Kayden Live Page</h2><p>Dedicated gaming page for Kayden's solo streams with comments and family-safe filtering.</p></div></div>
+      <div class="section-head"><div><h2>Kayden Live Page</h2><p>Kayden's gaming stream with live comments and family-safe filtering.</p></div></div>
       <div class="studio-grid">
         <article class="panel">
-          <div class="toolbar"><span class="pill">Kayden Solo</span><button class="chip" type="button" data-popout="studio-kayden">Pop Out Page</button></div>
-          <div class="preview" style="margin-top:14px;">
-            <span class="live-badge" data-live-badge="studio-kayden">LIVE DEMO</span>
+          <div class="toolbar"><span class="pill">Kayden Solo</span><span class="pill" data-live-status="studio-kayden">Offline</span></div>
+          <div class="preview" style="margin-top:14px;" data-preview="studio-kayden">
+            <span class="live-badge" data-live-badge="studio-kayden">LIVE</span>
             <span class="scene-pill">Kayden Solo View</span>
-            <video autoplay muted playsinline data-camera-preview="studio-kayden"></video>
-            <div class="preview-placeholder" data-camera-placeholder="studio-kayden"><h3 style="margin-bottom:10px;">Kayden camera preview</h3><p class="muted" style="margin:0;color:#dfe8ff;">Practice gaming intros, highlights, and quick shout-outs here.</p></div>
+            <video autoplay muted playsinline data-camera-preview="studio-kayden" class="host-only"></video>
+            <div data-player-slot="studio-kayden"></div>
+            <div class="preview-placeholder" data-camera-placeholder="studio-kayden"><h3 style="margin-bottom:10px;">Kayden's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Kayden goes live.</p></div>
           </div>
-          <div class="action-row" style="margin-top:14px;"><button class="btn btn-primary" type="button" data-camera-start="studio-kayden">Turn On Camera</button><button class="btn btn-danger" type="button" data-camera-stop="studio-kayden">Turn Off Camera</button><button class="btn btn-secondary" type="button" data-live-toggle="studio-kayden">Go Live (Demo)</button></div>
-          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel page.</div>
+          <div class="action-row host-only" style="margin-top:14px;">
+            <button class="btn btn-primary" type="button" data-camera-start="studio-kayden">Turn On Camera</button>
+            <button class="btn btn-danger" type="button" data-camera-stop="studio-kayden">Turn Off Camera</button>
+            <button class="btn btn-secondary" type="button" data-go-live="studio-kayden">Go Live</button>
+            <button class="btn btn-danger hidden" type="button" data-stop-live="studio-kayden">Stop Stream</button>
+          </div>
+          <div class="stream-info hidden" data-stream-info="studio-kayden"></div>
+          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
         <article class="panel">
           <h3>About Kayden's page</h3>
           <div class="tag-row"><span class="tag">Gaming day</span><span class="tag">Solo page</span><span class="tag">Live chat</span></div>
-          <p class="muted">In the real hosted version, this should connect to a dedicated live room, persistent comments, and moderator tools.</p>
-          <ul class="feature-list"><li>Dedicated route for gaming streams</li><li>Channel-specific comments and moderation</li><li>Pop-out page for viewers on a separate tab</li></ul>
+          <p class="muted">Watch Kayden's gaming sessions and leave family-safe comments.</p>
+          <ul class="feature-list"><li>Live streaming powered by Mux</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
         </article>
       </div>
       <div class="comment-grid" style="margin-top:18px;">
         <article class="panel">
-          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Comments appear on this channel feed immediately in the prototype.</div></div><span class="comment-status">Family-safe mode on</span></div>
+          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Comments are shared across all viewers in real time.</div></div><span class="comment-status">Family-safe mode on</span></div>
           <form data-comment-form="studio-kayden">
             <div class="form-row"><label>Display name<input type="text" name="author" placeholder="Your name" required></label><label>Channel<input type="text" value="Kayden Solo" disabled></label></div>
             <label>Comment<textarea name="message" placeholder="Leave a kind, family-safe comment..." required></textarea></label>
-            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost manage-only" type="button" data-clear-comments="studio-kayden">Clear Comments</button></div>
+            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost host-only" type="button" data-clear-comments="studio-kayden">Clear Comments</button></div>
             <div class="copied" data-comment-feedback="studio-kayden"></div>
           </form>
         </article>
@@ -278,19 +311,27 @@
       </div>
     </section>
 
+    <!-- STUDIO: TOGETHER -->
     <section class="page" data-page="studio-together">
-      <div class="section-head"><div><h2>Together Studio Live Page</h2><p>Shared sibling page where both hosts can have one featured live page, one combined comment stream, and a pop-out route.</p></div></div>
+      <div class="section-head"><div><h2>Together Studio Live Page</h2><p>Shared sibling page with one featured live stream and combined comments.</p></div></div>
       <div class="studio-grid">
         <article class="panel">
-          <div class="toolbar"><span class="pill">Together Studio</span><button class="chip" type="button" data-popout="studio-together">Pop Out Page</button></div>
-          <div class="preview" style="margin-top:14px;">
-            <span class="live-badge" data-live-badge="studio-together">LIVE DEMO</span>
+          <div class="toolbar"><span class="pill">Together Studio</span><span class="pill" data-live-status="studio-together">Offline</span></div>
+          <div class="preview" style="margin-top:14px;" data-preview="studio-together">
+            <span class="live-badge" data-live-badge="studio-together">LIVE</span>
             <span class="scene-pill">Together Studio Scene</span>
-            <video autoplay muted playsinline data-camera-preview="studio-together"></video>
-            <div class="preview-placeholder" data-camera-placeholder="studio-together"><h3 style="margin-bottom:10px;">Together Studio preview</h3><p class="muted" style="margin:0;color:#dfe8ff;">This models the shared page where Keralee and Kayden appear together.</p></div>
+            <video autoplay muted playsinline data-camera-preview="studio-together" class="host-only"></video>
+            <div data-player-slot="studio-together"></div>
+            <div class="preview-placeholder" data-camera-placeholder="studio-together"><h3 style="margin-bottom:10px;">Together Studio</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when both hosts go live.</p></div>
           </div>
-          <div class="action-row" style="margin-top:14px;"><button class="btn btn-primary" type="button" data-camera-start="studio-together">Turn On Camera</button><button class="btn btn-danger" type="button" data-camera-stop="studio-together">Turn Off Camera</button><button class="btn btn-secondary" type="button" data-live-toggle="studio-together">Go Live (Demo)</button></div>
-          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel page.</div>
+          <div class="action-row host-only" style="margin-top:14px;">
+            <button class="btn btn-primary" type="button" data-camera-start="studio-together">Turn On Camera</button>
+            <button class="btn btn-danger" type="button" data-camera-stop="studio-together">Turn Off Camera</button>
+            <button class="btn btn-secondary" type="button" data-go-live="studio-together">Go Live</button>
+            <button class="btn btn-danger hidden" type="button" data-stop-live="studio-together">Stop Stream</button>
+          </div>
+          <div class="stream-info hidden" data-stream-info="studio-together"></div>
+          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
         <article class="panel">
           <h3>Two-laptop studio model</h3>
@@ -303,11 +344,11 @@
       </div>
       <div class="comment-grid" style="margin-top:18px;">
         <article class="panel">
-          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">This feed is shared for the combined sibling studio page.</div></div><span class="comment-status">Family-safe mode on</span></div>
+          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Shared comment feed for the combined sibling studio.</div></div><span class="comment-status">Family-safe mode on</span></div>
           <form data-comment-form="studio-together">
             <div class="form-row"><label>Display name<input type="text" name="author" placeholder="Your name" required></label><label>Channel<input type="text" value="Together Studio" disabled></label></div>
             <label>Comment<textarea name="message" placeholder="Leave a kind, family-safe comment..." required></textarea></label>
-            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost manage-only" type="button" data-clear-comments="studio-together">Clear Comments</button></div>
+            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost host-only" type="button" data-clear-comments="studio-together">Clear Comments</button></div>
             <div class="copied" data-comment-feedback="studio-together"></div>
           </form>
         </article>
@@ -315,41 +356,45 @@
       </div>
     </section>
 
+    <!-- VIDEOS -->
     <section class="page" data-page="videos">
-      <div class="section-head"><div><h2>Video library page</h2><p>This is now its own page. In the real hosted build, it should also have its own URL.</p></div></div>
+      <div class="section-head"><div><h2>Video library</h2><p>Adventure videos, gameplay clips, and reviews.</p></div></div>
       <article class="panel">
-        <div class="upload-zone manage-only"><strong>Add adventure videos, gameplay clips, reviews, or park-day memories</strong><div class="mini-note">Internal mode is required to add or remove videos.</div><input id="videoUpload" type="file" accept="video/*" multiple></div>
-        <div class="locked-banner viewer-note">Video uploads and delete actions are locked for viewers.</div>
+        <div class="upload-zone host-only"><strong>Add adventure videos, gameplay clips, reviews, or park-day memories</strong><div class="mini-note">Host access required to upload or remove videos.</div><input id="videoUpload" type="file" accept="video/*" multiple></div>
+        <div class="locked-banner viewer-note">Video uploads are managed by the hosts.</div>
         <div id="videoLibrary" class="library-grid" style="margin-top:16px;"></div>
       </article>
     </section>
 
+    <!-- SHORTS -->
     <section class="page" data-page="shorts">
-      <div class="section-head"><div><h2>Shorts page</h2><p>A dedicated route-style page for vertical clips and quick highlights.</p></div></div>
+      <div class="section-head"><div><h2>Shorts</h2><p>Quick highlights and vertical clips.</p></div></div>
       <div class="two-col">
         <article class="panel">
-          <div class="upload-zone manage-only"><strong>Add short-form clips</strong><div class="mini-note">Internal mode is required to add or remove Shorts.</div><input id="shortUpload" type="file" accept="video/*" multiple></div>
-          <div class="locked-banner viewer-note">Short uploads are locked. Internal access is required to add, edit, or remove Shorts.</div>
+          <div class="upload-zone host-only"><strong>Add short-form clips</strong><div class="mini-note">Host access required.</div><input id="shortUpload" type="file" accept="video/*" multiple></div>
+          <div class="locked-banner viewer-note">Short uploads are managed by the hosts.</div>
           <div id="shortsGrid" class="shorts-grid" style="margin-top:16px;"></div>
         </article>
-        <article class="panel"><h3>Shorts lane</h3><div class="short-placeholder"><div><span class="tag">Fast clips</span><strong style="display:block; margin-top:10px;">Quick adventures, reactions, and gaming wins</strong><div class="mini-note">This section behaves like its own page instead of a fragment within the homepage.</div></div></div></article>
+        <article class="panel"><h3>Shorts lane</h3><div class="short-placeholder"><div><span class="tag">Fast clips</span><strong style="display:block; margin-top:10px;">Quick adventures, reactions, and gaming wins</strong></div></div></article>
       </div>
     </section>
 
+    <!-- PHOTOS -->
     <section class="page" data-page="photos">
-      <div class="section-head"><div><h2>Photo gallery page</h2><p>A dedicated route-style page for adventure photos, family fun, and daily memories.</p></div></div>
+      <div class="section-head"><div><h2>Photo gallery</h2><p>Adventure photos, family fun, and daily memories.</p></div></div>
       <article class="panel">
-        <div class="upload-zone manage-only"><strong>Add photos to the adventure wall</strong><div class="mini-note">Internal mode is required to add or remove pictures.</div><input id="photoUpload" type="file" accept="image/*" multiple></div>
-        <div class="locked-banner viewer-note">Photo upload and delete actions are locked for viewers.</div>
+        <div class="upload-zone host-only"><strong>Add photos to the adventure wall</strong><div class="mini-note">Host access required.</div><input id="photoUpload" type="file" accept="image/*" multiple></div>
+        <div class="locked-banner viewer-note">Photo uploads are managed by the hosts.</div>
         <div id="photoGallery" class="photo-grid" style="margin-top:16px;"></div>
       </article>
     </section>
 
+    <!-- JOURNAL -->
     <section class="page" data-page="journal">
-      <div class="section-head"><div><h2>Adventure journal page</h2><p>Journal posts now live on their own route-style page.</p></div></div>
+      <div class="section-head"><div><h2>Adventure journal</h2><p>Stories and memories from Keralee & Kayden.</p></div></div>
       <div class="two-col">
         <article class="panel">
-          <div class="manage-only">
+          <div class="host-only">
             <h3>Write a new post</h3>
             <form id="journalForm">
               <div class="form-row">
@@ -361,424 +406,479 @@
                 <label>Adventure type<select id="journalCategory"><option value="Adventure">Adventure</option><option value="Gaming">Gaming</option><option value="Review">Review</option><option value="Daily Life">Daily Life</option><option value="Park Day">Park Day</option></select></label>
               </div>
               <label>Story<textarea id="journalStory" placeholder="Write what happened, what was fun, and what you want to remember..." required></textarea></label>
-              <div class="action-row"><button class="btn btn-primary" type="submit">Publish Journal Entry</button><button class="btn btn-ghost" type="button" id="clearJournalBtn">Clear Saved Posts</button></div>
+              <div class="action-row"><button class="btn btn-primary" type="submit">Publish Journal Entry</button></div>
             </form>
           </div>
-          <div class="locked-banner viewer-note">Journal publishing and editing are locked. Internal access is required.</div>
+          <div class="locked-banner viewer-note">Journal publishing is managed by the hosts.</div>
         </article>
         <article class="panel"><h3>Published adventures</h3><div id="journalPosts" class="journal-grid"></div></article>
       </div>
     </section>
   </main>
 
-  <footer class="footer wrap">Built for Keralee & Kayden's adventures. Any real online version for children should use adult supervision, private access, live moderation, and secure server-side permissions.</footer>
+  <footer class="wrap footer">Built for Keralee & Kayden's adventures. Family-safe, moderated, and host-controlled.</footer>
 
-  <div class="modal" id="accessModal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="accessTitle">
-      <div class="modal-head"><h3 id="accessTitle">Internal access</h3><button class="close-btn" type="button" data-close-access>&times;</button></div>
-      <div class="mini-note" style="margin-bottom:14px;">Demo prototype lock for browser-side management controls. Default passcode: <strong>FamilyOnly123</strong>.</div>
-      <form id="accessForm">
-        <label>Internal passcode<input type="password" id="accessCode" placeholder="Enter internal passcode" required></label>
-        <div class="action-row"><button class="btn btn-primary" type="submit">Unlock Internal Mode</button><button class="btn btn-ghost" type="button" id="lockAccessBtn">Return to Viewer Mode</button></div>
-        <div class="copied" id="accessStatus"></div>
+  <!-- AUTH MODAL -->
+  <div id="authModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head"><h3 id="authTitle">Sign In</h3><button class="close-btn" type="button" id="closeAuthBtn">&times;</button></div>
+      <div class="tab-row">
+        <button class="tab-btn active" type="button" data-auth-tab="login">Sign In</button>
+        <button class="tab-btn" type="button" data-auth-tab="register">Create Account</button>
+      </div>
+      <form id="authForm">
+        <label>Username<input type="text" id="authUser" placeholder="Enter username" required autocomplete="username"></label>
+        <label>Password<input type="password" id="authPass" placeholder="Enter password" required autocomplete="current-password"></label>
+        <button class="btn btn-primary" type="submit" id="authSubmitBtn">Sign In</button>
+        <div class="error-msg" id="authError"></div>
+        <div class="copied" id="authSuccess"></div>
       </form>
     </div>
   </div>
 
   <script>
-    (function () {
-      const INTERNAL_PASSCODE = 'FamilyOnly123';
-      const INTERNAL_KEY = 'keralee-kayden-internal-access';
-      const JOURNAL_KEY = 'keralee-kayden-journal-posts';
-      const COMMENT_KEY = 'keralee-kayden-live-comments';
-      const profanityPatterns = [/\bdamn\b/i, /\bhell\b/i, /\bcrap\b/i, /\bwtf\b/i, /\bidiot\b/i, /\bstupid\b/i, /\bshut up\b/i];
+  (function () {
+    /* ── Config ───────────────────────────────────────── */
+    const API = '/api';
+    const CHANNELS = ['studio-keralee', 'studio-kayden', 'studio-together'];
+    const profanityPatterns = [/\bdamn\b/i, /\bhell\b/i, /\bcrap\b/i, /\bwtf\b/i, /\bidiot\b/i, /\bstupid\b/i, /\bshut up\b/i];
 
-      const body = document.body;
-      const pages = Array.from(document.querySelectorAll('.page'));
-      const openAccessBtn = document.getElementById('openAccessBtn');
-      const accessModal = document.getElementById('accessModal');
-      const accessForm = document.getElementById('accessForm');
-      const accessCode = document.getElementById('accessCode');
-      const accessStatus = document.getElementById('accessStatus');
-      const lockAccessBtn = document.getElementById('lockAccessBtn');
-      const journalForm = document.getElementById('journalForm');
-      const journalPosts = document.getElementById('journalPosts');
-      const journalDate = document.getElementById('journalDate');
-      const clearJournalBtn = document.getElementById('clearJournalBtn');
-      const videoUpload = document.getElementById('videoUpload');
-      const shortUpload = document.getElementById('shortUpload');
-      const photoUpload = document.getElementById('photoUpload');
-      const videoLibrary = document.getElementById('videoLibrary');
-      const shortsGrid = document.getElementById('shortsGrid');
-      const photoGallery = document.getElementById('photoGallery');
-      const cameraState = {};
+    /* ── State ────────────────────────────────────────── */
+    let authToken = sessionStorage.getItem('kk_token') || null;
+    let authRole = sessionStorage.getItem('kk_role') || null;
+    let authUsername = sessionStorage.getItem('kk_username') || null;
+    let authMode = 'login';
+    const cameraState = {};
+    const wsConnections = {};
 
-      function readLocal(key, fallback) {
-        try {
-          const value = JSON.parse(localStorage.getItem(key));
-          return value == null ? fallback : value;
-        } catch (_) {
-          return fallback;
-        }
+    /* ── DOM refs ─────────────────────────────────────── */
+    const body = document.body;
+    const pages = Array.from(document.querySelectorAll('.page'));
+    const authBtn = document.getElementById('authBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userBadge = document.getElementById('userBadge');
+    const authModal = document.getElementById('authModal');
+    const authForm = document.getElementById('authForm');
+    const authUser = document.getElementById('authUser');
+    const authPass = document.getElementById('authPass');
+    const authError = document.getElementById('authError');
+    const authSuccess = document.getElementById('authSuccess');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const closeAuthBtn = document.getElementById('closeAuthBtn');
+    const journalForm = document.getElementById('journalForm');
+    const journalPosts = document.getElementById('journalPosts');
+    const journalDate = document.getElementById('journalDate');
+    const videoUpload = document.getElementById('videoUpload');
+    const shortUpload = document.getElementById('shortUpload');
+    const photoUpload = document.getElementById('photoUpload');
+    const videoLibrary = document.getElementById('videoLibrary');
+    const shortsGrid = document.getElementById('shortsGrid');
+    const photoGallery = document.getElementById('photoGallery');
+
+    /* ── Helpers ──────────────────────────────────────── */
+    function escapeHtml(v) {
+      return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+    function nl2br(v) { return escapeHtml(v).replace(/\n/g,'<br>'); }
+    function formatDate(v) {
+      if (!v) return 'No date';
+      const d = new Date(v + 'T00:00:00');
+      return d.toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' });
+    }
+    function renderEmpty(el, msg) { el.innerHTML = '<div class="empty-state">' + msg + '</div>'; }
+
+    async function apiFetch(path, opts = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+      const res = await fetch(API + path, { ...opts, headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Request failed');
+      return data;
+    }
+
+    /* ── Auth UI ──────────────────────────────────────── */
+    function syncAuthUI() {
+      const loggedIn = !!authToken;
+      const isHost = authRole === 'host';
+      body.classList.toggle('role-host', isHost);
+      body.classList.toggle('role-viewer', loggedIn && !isHost);
+      authBtn.classList.toggle('hidden', loggedIn);
+      logoutBtn.classList.toggle('hidden', !loggedIn);
+      if (loggedIn) {
+        userBadge.textContent = (isHost ? '🔑 ' : '👤 ') + authUsername;
+        userBadge.classList.remove('hidden');
+      } else {
+        userBadge.classList.add('hidden');
       }
+    }
 
-      function writeLocal(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-      }
+    function openAuth() { authModal.classList.add('show'); authError.textContent = ''; authSuccess.textContent = ''; }
+    function closeAuth() { authModal.classList.remove('show'); }
 
-      function escapeHtml(value) {
-        return String(value)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;');
-      }
+    authBtn.addEventListener('click', openAuth);
+    closeAuthBtn.addEventListener('click', closeAuth);
+    authModal.addEventListener('click', e => { if (e.target === authModal) closeAuth(); });
 
-      function nl2br(value) {
-        return escapeHtml(value).replace(/\n/g, '<br>');
-      }
+    document.querySelectorAll('[data-auth-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        authMode = btn.getAttribute('data-auth-tab');
+        document.querySelectorAll('[data-auth-tab]').forEach(b => b.classList.toggle('active', b === btn));
+        authSubmitBtn.textContent = authMode === 'login' ? 'Sign In' : 'Create Account';
+        authError.textContent = ''; authSuccess.textContent = '';
+      });
+    });
 
-      function formatDate(value) {
-        if (!value) return 'No date';
-        const date = new Date(value + 'T00:00:00');
-        return date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-      }
-
-      function isInternal() {
-        return localStorage.getItem(INTERNAL_KEY) === 'true';
-      }
-
-      function syncAccessUI() {
-        const internal = isInternal();
-        body.classList.toggle('locked', !internal);
-        body.classList.toggle('unlocked', internal);
-        renderComments();
-        renderJournal();
-      }
-
-      function requireInternal(actionName) {
-        if (!isInternal()) {
-          accessStatus.textContent = 'Internal access is required for ' + actionName + '.';
-          openAccessModal();
-          return false;
-        }
-        return true;
-      }
-
-      function openAccessModal() {
-        accessModal.classList.add('show');
-        accessModal.setAttribute('aria-hidden', 'false');
-      }
-
-      function closeAccessModal() {
-        accessModal.classList.remove('show');
-        accessModal.setAttribute('aria-hidden', 'true');
-      }
-
-      function routeFromHash() {
-        const raw = window.location.hash.replace(/^#\/?/, '');
-        if (!raw) return 'home';
-        return raw.replace(/\//g, '-');
-      }
-
-      function setRoute(route, pushHash) {
-        pages.forEach((page) => page.classList.toggle('active', page.getAttribute('data-page') === route));
-        if (pushHash !== false) {
-          window.location.hash = '#/' + route.replace(/-/g, '/');
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      function handleHashRoute() {
-        const route = routeFromHash();
-        const exists = pages.some((page) => page.getAttribute('data-page') === route);
-        setRoute(exists ? route : 'home', false);
-      }
-
-      function popOutRoute(route) {
-        const url = window.location.href.split('#')[0] + '#/' + route.replace(/-/g, '/');
-        window.open(url, '_blank', 'noopener,noreferrer,width=1200,height=900');
-      }
-
-      function renderEmpty(container, message) {
-        container.innerHTML = '<div class="empty-state">' + message + '</div>';
-      }
-
-      function createDeleteButton(type, index, channel) {
-        if (!isInternal()) return '';
-        const attrs = ['data-delete-type="' + type + '"', 'data-index="' + index + '"'];
-        if (channel) attrs.push('data-channel="' + channel + '"');
-        return '<button class="btn btn-ghost edit-only" type="button" ' + attrs.join(' ') + '>Delete</button>';
-      }
-
-      function renderJournal() {
-        const posts = readLocal(JOURNAL_KEY, []);
-        if (!posts.length) {
-          renderEmpty(journalPosts, 'No adventures published yet. Unlock internal mode to add the first story.');
-          return;
-        }
-        journalPosts.innerHTML = posts.map((post, index) => (
-          '<article class="journal-item"><div class="journal-body">' +
-          '<strong>' + escapeHtml(post.title) + '</strong>' +
-          '<div class="muted" style="margin-bottom:8px;">' + formatDate(post.date) + ' • ' + escapeHtml(post.host) + ' • ' + escapeHtml(post.category) + '</div>' +
-          '<div style="line-height:1.7;">' + nl2br(post.story) + '</div>' +
-          '<div class="action-row" style="margin-top:12px;">' + createDeleteButton('journal', index) + '</div>' +
-          '</div></article>'
-        )).join('');
-      }
-
-      function readComments() {
-        return readLocal(COMMENT_KEY, { 'studio-keralee': [], 'studio-kayden': [], 'studio-together': [] });
-      }
-
-      function writeComments(value) {
-        writeLocal(COMMENT_KEY, value);
-      }
-
-      function containsProfanity(text) {
-        return profanityPatterns.some((pattern) => pattern.test(text));
-      }
-
-      function renderComments() {
-        const comments = readComments();
-        document.querySelectorAll('[data-comment-list]').forEach((listNode) => {
-          const channel = listNode.getAttribute('data-comment-list');
-          const items = comments[channel] || [];
-          if (!items.length) {
-            renderEmpty(listNode, 'No comments yet. Be the first to leave a kind, family-safe message.');
-            return;
-          }
-          listNode.innerHTML = items.map((item, index) => (
-            '<article class="comment-item"><div class="comment-body">' +
-            '<strong>' + escapeHtml(item.author) + '</strong>' +
-            '<small>' + escapeHtml(item.timestamp) + '</small>' +
-            '<div style="margin-top:8px; line-height:1.7;">' + nl2br(item.message) + '</div>' +
-            '<div class="action-row" style="margin-top:12px;">' + createDeleteButton('comment', index, channel) + '</div>' +
-            '</div></article>'
-          )).join('');
+    authForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      authError.textContent = ''; authSuccess.textContent = '';
+      try {
+        const endpoint = authMode === 'login' ? '/auth/login' : '/auth/register';
+        const data = await apiFetch(endpoint, {
+          method: 'POST',
+          body: JSON.stringify({ username: authUser.value.trim(), password: authPass.value }),
         });
+        authToken = data.token;
+        authRole = data.role;
+        authUsername = data.username;
+        sessionStorage.setItem('kk_token', authToken);
+        sessionStorage.setItem('kk_role', authRole);
+        sessionStorage.setItem('kk_username', authUsername);
+        syncAuthUI();
+        authSuccess.textContent = 'Signed in as ' + authUsername + ' (' + authRole + ')';
+        authForm.reset();
+        setTimeout(closeAuth, 800);
+        loadAllData();
+      } catch (err) {
+        authError.textContent = err.message;
       }
+    });
 
-      function handleCommentSubmit(channel, form) {
+    logoutBtn.addEventListener('click', () => {
+      authToken = null; authRole = null; authUsername = null;
+      sessionStorage.removeItem('kk_token');
+      sessionStorage.removeItem('kk_role');
+      sessionStorage.removeItem('kk_username');
+      syncAuthUI();
+    });
+
+    /* ── Routing ──────────────────────────────────────── */
+    function routeFromHash() {
+      const raw = location.hash.replace(/^#\/?/, '');
+      return raw ? raw.replace(/\//g, '-') : 'home';
+    }
+    function setRoute(route, pushHash) {
+      pages.forEach(p => p.classList.toggle('active', p.getAttribute('data-page') === route));
+      if (pushHash !== false) location.hash = '#/' + route.replace(/-/g, '/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Load comments when entering a studio page
+      if (route.startsWith('studio-')) loadComments(route);
+      // Check stream status
+      if (CHANNELS.includes(route)) checkStreamStatus(route);
+    }
+    function handleHashRoute() {
+      const route = routeFromHash();
+      const exists = pages.some(p => p.getAttribute('data-page') === route);
+      setRoute(exists ? route : 'home', false);
+    }
+    window.addEventListener('hashchange', handleHashRoute);
+
+    /* ── Comments (API-backed) ────────────────────────── */
+    async function loadComments(channel) {
+      const listNode = document.querySelector('[data-comment-list="' + channel + '"]');
+      if (!listNode) return;
+      try {
+        const items = await apiFetch('/comments/' + channel);
+        if (!items.length) { renderEmpty(listNode, 'No comments yet. Be the first!'); return; }
+        listNode.innerHTML = items.map(item =>
+          '<article class="comment-item"><div class="comment-body">' +
+          '<strong>' + escapeHtml(item.author) + '</strong>' +
+          '<small>' + escapeHtml(item.timestamp) + '</small>' +
+          '<div style="margin-top:8px;line-height:1.7;">' + nl2br(item.message) + '</div>' +
+          (authRole === 'host' ? '<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-comment="' + item.id + '" data-channel="' + channel + '">Delete</button></div>' : '') +
+          '</div></article>'
+        ).join('');
+      } catch (_) { renderEmpty(listNode, 'Could not load comments.'); }
+    }
+
+    document.querySelectorAll('[data-comment-form]').forEach(form => {
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const channel = form.getAttribute('data-comment-form');
         const feedback = document.querySelector('[data-comment-feedback="' + channel + '"]');
         const author = form.author.value.trim();
         const message = form.message.value.trim();
         if (!author || !message) return;
-        if (containsProfanity(message)) {
-          feedback.textContent = 'Comment blocked. Family-safe language is required on this channel.';
-          return;
-        }
-        const comments = readComments();
-        comments[channel].unshift({ author, message, timestamp: new Date().toLocaleString() });
-        writeComments(comments);
-        form.reset();
-        feedback.textContent = 'Comment posted.';
-        renderComments();
-      }
-
-      function handleCommentDelete(channel, index) {
-        if (!requireInternal('comment moderation')) return;
-        const comments = readComments();
-        comments[channel].splice(index, 1);
-        writeComments(comments);
-        renderComments();
-      }
-
-      function clearComments(channel) {
-        if (!requireInternal('comment clearing')) return;
-        const comments = readComments();
-        comments[channel] = [];
-        writeComments(comments);
-        renderComments();
-      }
-
-      function makeVideoCard(file, index) {
-        const url = URL.createObjectURL(file);
-        return '<article class="media-item"><video controls src="' + url + '"></video><div class="media-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">' + (Math.round(file.size / 1024 / 1024 * 10) / 10) + ' MB video clip</div><div class="action-row" style="margin-top:12px;">' + createDeleteButton('video-dom', index) + '</div></div></article>';
-      }
-
-      function makePhotoCard(file, index) {
-        const url = URL.createObjectURL(file);
-        return '<article class="photo-item"><img src="' + url + '" alt="Uploaded adventure photo"><div class="media-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">Photo memory</div><div class="action-row" style="margin-top:12px;">' + createDeleteButton('photo-dom', index) + '</div></div></article>';
-      }
-
-      function makeShortCard(file, index) {
-        const url = URL.createObjectURL(file);
-        return '<article class="short-item"><video controls playsinline src="' + url + '"></video><div class="short-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">Short highlight clip • ' + (Math.round(file.size / 1024 / 1024 * 10) / 10) + ' MB</div><div class="action-row" style="margin-top:12px;">' + createDeleteButton('short-dom', index) + '</div></div></article>';
-      }
-
-      function deleteStoredItem(type, index) {
-        if (!requireInternal('delete actions')) return;
-        if (type === 'journal') {
-          const posts = readLocal(JOURNAL_KEY, []);
-          posts.splice(index, 1);
-          writeLocal(JOURNAL_KEY, posts);
-          renderJournal();
-          return;
-        }
-        const containerMap = { 'video-dom': videoLibrary, 'photo-dom': photoGallery, 'short-dom': shortsGrid };
-        const container = containerMap[type];
-        if (!container) return;
-        const items = Array.from(container.children).filter((node) => node.classList && !node.classList.contains('empty-state'));
-        const target = items[index];
-        if (target) target.remove();
-        if (!Array.from(container.children).some((node) => node.classList && !node.classList.contains('empty-state'))) {
-          if (container === videoLibrary) renderEmpty(videoLibrary, 'No videos uploaded yet. Unlock internal mode to add the first video.');
-          if (container === photoGallery) renderEmpty(photoGallery, 'No photos uploaded yet. Unlock internal mode to add the first picture.');
-          if (container === shortsGrid) renderEmpty(shortsGrid, 'No Shorts uploaded yet. Unlock internal mode to add the first Short.');
-        }
-      }
-
-      async function startCamera(channel) {
+        if (profanityPatterns.some(p => p.test(message))) { feedback.textContent = 'Comment blocked. Family-safe language required.'; return; }
         try {
-          if (!cameraState[channel]) {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-            cameraState[channel] = { stream, live: false };
-          }
-          const video = document.querySelector('[data-camera-preview="' + channel + '"]');
-          const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
-          video.srcObject = cameraState[channel].stream;
-          placeholder.style.display = 'none';
-        } catch (_) {
-          alert('Camera access was not allowed. The rest of the site will still work.');
-        }
-      }
-
-      function stopCamera(channel) {
-        const state = cameraState[channel];
-        if (state && state.stream) state.stream.getTracks().forEach((track) => track.stop());
-        delete cameraState[channel];
-        const video = document.querySelector('[data-camera-preview="' + channel + '"]');
-        const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
-        const badge = document.querySelector('[data-live-badge="' + channel + '"]');
-        if (video) video.srcObject = null;
-        if (placeholder) placeholder.style.display = 'grid';
-        if (badge) badge.classList.remove('show');
-      }
-
-      async function toggleLive(channel) {
-        if (!cameraState[channel]) await startCamera(channel);
-        const state = cameraState[channel] || { live: false };
-        state.live = !state.live;
-        cameraState[channel] = state;
-        const badge = document.querySelector('[data-live-badge="' + channel + '"]');
-        if (badge) badge.classList.toggle('show', state.live);
-      }
-
-      document.addEventListener('click', function (event) {
-        const routeButton = event.target.closest('[data-route]');
-        if (routeButton) return setRoute(routeButton.getAttribute('data-route'));
-        const popButton = event.target.closest('[data-popout]');
-        if (popButton) return popOutRoute(popButton.getAttribute('data-popout'));
-        const deleteButton = event.target.closest('[data-delete-type]');
-        if (deleteButton) {
-          const type = deleteButton.getAttribute('data-delete-type');
-          const index = Number(deleteButton.getAttribute('data-index'));
-          const channel = deleteButton.getAttribute('data-channel');
-          if (type === 'comment' && channel) handleCommentDelete(channel, index);
-          else deleteStoredItem(type, index);
-          return;
-        }
-        const clearButton = event.target.closest('[data-clear-comments]');
-        if (clearButton) return clearComments(clearButton.getAttribute('data-clear-comments'));
-        const cameraStart = event.target.closest('[data-camera-start]');
-        if (cameraStart) return startCamera(cameraStart.getAttribute('data-camera-start'));
-        const cameraStop = event.target.closest('[data-camera-stop]');
-        if (cameraStop) return stopCamera(cameraStop.getAttribute('data-camera-stop'));
-        const liveToggle = event.target.closest('[data-live-toggle]');
-        if (liveToggle) return toggleLive(liveToggle.getAttribute('data-live-toggle'));
+          await apiFetch('/comments/' + channel, { method: 'POST', body: JSON.stringify({ author, message }) });
+          form.reset(); feedback.textContent = 'Comment posted!';
+          loadComments(channel);
+        } catch (err) { feedback.textContent = err.message; }
       });
+    });
 
-      openAccessBtn.addEventListener('click', openAccessModal);
-      document.querySelectorAll('[data-close-access]').forEach((button) => button.addEventListener('click', closeAccessModal));
-      accessModal.addEventListener('click', (event) => { if (event.target === accessModal) closeAccessModal(); });
+    /* ── Journal (API-backed) ─────────────────────────── */
+    async function loadJournal() {
+      try {
+        const items = await apiFetch('/journal');
+        if (!items.length) { renderEmpty(journalPosts, 'No adventures published yet.'); return; }
+        journalPosts.innerHTML = items.map(item =>
+          '<article class="journal-item"><div class="journal-body">' +
+          '<strong>' + escapeHtml(item.title) + '</strong>' +
+          '<div class="muted" style="margin-bottom:8px;">' + formatDate(item.date) + ' • ' + escapeHtml(item.host) + ' • ' + escapeHtml(item.category) + '</div>' +
+          '<div style="line-height:1.7;">' + nl2br(item.story) + '</div>' +
+          (authRole === 'host' ? '<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-journal="' + item.id + '">Delete</button></div>' : '') +
+          '</div></article>'
+        ).join('');
+      } catch (_) { renderEmpty(journalPosts, 'Could not load journal.'); }
+    }
 
-      accessForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-        if (accessCode.value === INTERNAL_PASSCODE) {
-          localStorage.setItem(INTERNAL_KEY, 'true');
-          accessStatus.textContent = 'Internal mode unlocked on this browser.';
-          accessCode.value = '';
-          syncAccessUI();
-        } else {
-          accessStatus.textContent = 'Incorrect passcode.';
-        }
-      });
-
-      lockAccessBtn.addEventListener('click', function () {
-        localStorage.removeItem(INTERNAL_KEY);
-        accessStatus.textContent = 'Returned to viewer mode.';
-        syncAccessUI();
-      });
-
-      window.addEventListener('hashchange', handleHashRoute);
-      handleHashRoute();
-
-      if (journalDate) journalDate.valueAsDate = new Date();
-
-      if (journalForm) {
-        journalForm.addEventListener('submit', function (event) {
-          event.preventDefault();
-          if (!requireInternal('journal publishing')) return;
-          const posts = readLocal(JOURNAL_KEY, []);
-          posts.unshift({
+    if (journalForm) {
+      journalForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+          await apiFetch('/journal', { method: 'POST', body: JSON.stringify({
             title: document.getElementById('journalTitle').value.trim(),
             date: document.getElementById('journalDate').value,
             host: document.getElementById('journalHost').value,
             category: document.getElementById('journalCategory').value,
-            story: document.getElementById('journalStory').value.trim()
-          });
-          writeLocal(JOURNAL_KEY, posts);
+            story: document.getElementById('journalStory').value.trim(),
+          })});
           journalForm.reset();
-          journalDate.valueAsDate = new Date();
-          renderJournal();
-        });
+          if (journalDate) journalDate.valueAsDate = new Date();
+          loadJournal();
+        } catch (err) { alert(err.message); }
+      });
+    }
+
+    /* ── Streaming ────────────────────────────────────── */
+    async function checkStreamStatus(channel) {
+      try {
+        const data = await apiFetch('/streams/' + channel);
+        updateLiveUI(channel, data.is_live, data.playback_id);
+      } catch (_) {}
+    }
+
+    function updateLiveUI(channel, isLive, playbackId) {
+      // Update all live status pills
+      document.querySelectorAll('[data-live-status="' + channel + '"]').forEach(el => {
+        el.textContent = isLive ? '🔴 LIVE' : 'Offline';
+        el.style.background = isLive ? 'rgba(255,58,58,.2)' : '';
+        el.style.color = isLive ? '#ff6b6b' : '';
+      });
+      // Update live badge
+      const badge = document.querySelector('[data-live-badge="' + channel + '"]');
+      if (badge) badge.classList.toggle('show', isLive);
+
+      // Show Mux player for viewers when live
+      const playerSlot = document.querySelector('[data-player-slot="' + channel + '"]');
+      const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
+      if (playerSlot && isLive && playbackId && authRole !== 'host') {
+        playerSlot.innerHTML = '<mux-player playback-id="' + playbackId + '" stream-type="live" autoplay muted style="width:100%;height:100%;--media-object-fit:cover;"></mux-player>';
+        if (placeholder) placeholder.style.display = 'none';
+      } else if (playerSlot && !isLive && authRole !== 'host') {
+        playerSlot.innerHTML = '';
+        if (placeholder) placeholder.style.display = 'grid';
       }
+    }
 
-      if (clearJournalBtn) {
-        clearJournalBtn.addEventListener('click', function () {
-          if (!requireInternal('journal clearing')) return;
-          localStorage.removeItem(JOURNAL_KEY);
-          renderJournal();
-        });
+    async function checkAllStreams() {
+      for (const ch of CHANNELS) { await checkStreamStatus(ch); }
+    }
+
+    /* ── Camera (host only) ───────────────────────────── */
+    async function startCamera(channel) {
+      try {
+        if (!cameraState[channel]) {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          cameraState[channel] = { stream, live: false, pc: null };
+        }
+        const video = document.querySelector('[data-camera-preview="' + channel + '"]');
+        const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
+        if (video) video.srcObject = cameraState[channel].stream;
+        if (placeholder) placeholder.style.display = 'none';
+      } catch (_) { alert('Camera access was not allowed.'); }
+    }
+
+    function stopCamera(channel) {
+      const state = cameraState[channel];
+      if (state) {
+        if (state.stream) state.stream.getTracks().forEach(t => t.stop());
+        if (state.pc) { state.pc.close(); state.pc = null; }
       }
+      delete cameraState[channel];
+      const video = document.querySelector('[data-camera-preview="' + channel + '"]');
+      const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
+      const badge = document.querySelector('[data-live-badge="' + channel + '"]');
+      if (video) video.srcObject = null;
+      if (placeholder) placeholder.style.display = 'grid';
+      if (badge) badge.classList.remove('show');
+    }
 
-      document.querySelectorAll('[data-comment-form]').forEach((form) => {
-        form.addEventListener('submit', function (event) {
-          event.preventDefault();
-          handleCommentSubmit(form.getAttribute('data-comment-form'), form);
+    async function goLive(channel) {
+      if (!authToken || authRole !== 'host') { openAuth(); return; }
+      try {
+        // Start camera if not already on
+        if (!cameraState[channel]) await startCamera(channel);
+        // Tell backend to create/enable Mux stream
+        const data = await apiFetch('/streams/' + channel + '/start', { method: 'POST' });
+        // Show stream info to host
+        const infoEl = document.querySelector('[data-stream-info="' + channel + '"]');
+        if (infoEl) {
+          infoEl.classList.remove('hidden');
+          infoEl.innerHTML =
+            '<strong>Stream is live!</strong><br>' +
+            'RTMP URL: <code>' + escapeHtml(data.rtmp_url) + '</code><br>' +
+            'Stream Key: <code>' + escapeHtml(data.stream_key) + '</code><br>' +
+            '<div class="muted" style="margin-top:8px;">Use these with OBS/Streamlabs, or the camera preview above is broadcasting via your browser.</div>';
+        }
+        // Try WHIP browser streaming
+        try {
+          await startWhipStream(channel, data.whip_url);
+        } catch (whipErr) {
+          console.warn('WHIP streaming not available, use OBS with RTMP:', whipErr);
+        }
+        // Update UI
+        const goBtn = document.querySelector('[data-go-live="' + channel + '"]');
+        const stopBtn = document.querySelector('[data-stop-live="' + channel + '"]');
+        if (goBtn) goBtn.classList.add('hidden');
+        if (stopBtn) stopBtn.classList.remove('hidden');
+        updateLiveUI(channel, true, data.playback_id);
+      } catch (err) { alert('Could not start stream: ' + err.message); }
+    }
+
+    async function stopLive(channel) {
+      try {
+        await apiFetch('/streams/' + channel + '/stop', { method: 'POST' });
+        // Close WHIP connection
+        if (cameraState[channel] && cameraState[channel].pc) {
+          cameraState[channel].pc.close();
+          cameraState[channel].pc = null;
+        }
+        const infoEl = document.querySelector('[data-stream-info="' + channel + '"]');
+        if (infoEl) infoEl.classList.add('hidden');
+        const goBtn = document.querySelector('[data-go-live="' + channel + '"]');
+        const stopBtn = document.querySelector('[data-stop-live="' + channel + '"]');
+        if (goBtn) goBtn.classList.remove('hidden');
+        if (stopBtn) stopBtn.classList.add('hidden');
+        updateLiveUI(channel, false, null);
+      } catch (err) { alert('Could not stop stream: ' + err.message); }
+    }
+
+    async function startWhipStream(channel, whipUrl) {
+      const state = cameraState[channel];
+      if (!state || !state.stream) throw new Error('No camera stream');
+      const pc = new RTCPeerConnection();
+      state.stream.getTracks().forEach(track => pc.addTrack(track, state.stream));
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      // Wait for ICE gathering to complete
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => resolve(), 3000);
+        if (pc.iceGatheringState === 'complete') { clearTimeout(timeout); resolve(); }
+        else pc.addEventListener('icegatheringstatechange', () => {
+          if (pc.iceGatheringState === 'complete') { clearTimeout(timeout); resolve(); }
         });
       });
-
-      videoUpload.addEventListener('change', function (event) {
-        if (!requireInternal('video uploads')) return;
-        const files = Array.from(event.target.files || []);
-        if (!files.length) return;
-        videoLibrary.innerHTML = files.map((file, index) => makeVideoCard(file, index)).join('');
+      const resp = await fetch(whipUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/sdp' },
+        body: pc.localDescription.sdp,
       });
+      if (!resp.ok) throw new Error('WHIP endpoint returned ' + resp.status);
+      const answer = await resp.text();
+      await pc.setRemoteDescription({ type: 'answer', sdp: answer });
+      state.pc = pc;
+    }
 
-      shortUpload.addEventListener('change', function (event) {
-        if (!requireInternal('short uploads')) return;
-        const files = Array.from(event.target.files || []);
-        if (!files.length) return;
-        shortsGrid.innerHTML = files.map((file, index) => makeShortCard(file, index)).join('');
-      });
+    /* ── WebSocket for real-time updates ──────────────── */
+    function connectWs(channel) {
+      if (wsConnections[channel]) return;
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = proto + '//' + location.host + '/ws/comments/' + channel;
+      try {
+        const ws = new WebSocket(wsUrl);
+        ws.onmessage = event => {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'comment_created' || msg.type === 'comment_deleted' || msg.type === 'comments_cleared') {
+            loadComments(channel);
+          }
+          if (msg.type === 'stream_started') updateLiveUI(channel, true, msg.playback_id);
+          if (msg.type === 'stream_stopped') updateLiveUI(channel, false, null);
+        };
+        ws.onclose = () => { delete wsConnections[channel]; setTimeout(() => connectWs(channel), 5000); };
+        wsConnections[channel] = ws;
+      } catch (_) {}
+    }
 
-      photoUpload.addEventListener('change', function (event) {
-        if (!requireInternal('photo uploads')) return;
-        const files = Array.from(event.target.files || []);
-        if (!files.length) return;
-        photoGallery.innerHTML = files.map((file, index) => makePhotoCard(file, index)).join('');
-      });
+    /* ── File uploads (browser-local, host only) ──────── */
+    function makeVideoCard(file) {
+      const url = URL.createObjectURL(file);
+      return '<article class="media-item"><video controls src="' + url + '"></video><div class="media-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">' + (Math.round(file.size / 1024 / 1024 * 10) / 10) + ' MB</div></div></article>';
+    }
+    function makePhotoCard(file) {
+      const url = URL.createObjectURL(file);
+      return '<article class="photo-item"><img src="' + url + '" alt="Photo"><div class="media-meta"><strong>' + escapeHtml(file.name) + '</strong></div></article>';
+    }
+    function makeShortCard(file) {
+      const url = URL.createObjectURL(file);
+      return '<article class="short-item"><video controls playsinline src="' + url + '"></video><div class="short-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">' + (Math.round(file.size / 1024 / 1024 * 10) / 10) + ' MB</div></div></article>';
+    }
+    if (videoUpload) videoUpload.addEventListener('change', e => { const files = Array.from(e.target.files || []); if (files.length) videoLibrary.innerHTML = files.map(f => makeVideoCard(f)).join(''); });
+    if (shortUpload) shortUpload.addEventListener('change', e => { const files = Array.from(e.target.files || []); if (files.length) shortsGrid.innerHTML = files.map(f => makeShortCard(f)).join(''); });
+    if (photoUpload) photoUpload.addEventListener('change', e => { const files = Array.from(e.target.files || []); if (files.length) photoGallery.innerHTML = files.map(f => makePhotoCard(f)).join(''); });
 
-      renderEmpty(videoLibrary, 'No videos uploaded yet. Unlock internal mode to add the first video.');
-      renderEmpty(shortsGrid, 'No Shorts uploaded yet. Unlock internal mode to add the first Short.');
-      renderEmpty(photoGallery, 'No photos uploaded yet. Unlock internal mode to add the first picture.');
-      renderJournal();
-      renderComments();
-      syncAccessUI();
-    })();
+    /* ── Global click delegation ──────────────────────── */
+    document.addEventListener('click', async e => {
+      const routeBtn = e.target.closest('[data-route]');
+      if (routeBtn) return setRoute(routeBtn.getAttribute('data-route'));
+      const deleteComment = e.target.closest('[data-delete-comment]');
+      if (deleteComment) {
+        const id = deleteComment.getAttribute('data-delete-comment');
+        const ch = deleteComment.getAttribute('data-channel');
+        try { await apiFetch('/comments/' + ch + '/' + id, { method: 'DELETE' }); loadComments(ch); } catch (err) { alert(err.message); }
+        return;
+      }
+      const deleteJournal = e.target.closest('[data-delete-journal]');
+      if (deleteJournal) {
+        const id = deleteJournal.getAttribute('data-delete-journal');
+        try { await apiFetch('/journal/' + id, { method: 'DELETE' }); loadJournal(); } catch (err) { alert(err.message); }
+        return;
+      }
+      const clearBtn = e.target.closest('[data-clear-comments]');
+      if (clearBtn) {
+        const ch = clearBtn.getAttribute('data-clear-comments');
+        try { await apiFetch('/comments/' + ch, { method: 'DELETE' }); loadComments(ch); } catch (_) {}
+        return;
+      }
+      const camStart = e.target.closest('[data-camera-start]');
+      if (camStart) return startCamera(camStart.getAttribute('data-camera-start'));
+      const camStop = e.target.closest('[data-camera-stop]');
+      if (camStop) return stopCamera(camStop.getAttribute('data-camera-stop'));
+      const goLiveBtn = e.target.closest('[data-go-live]');
+      if (goLiveBtn) return goLive(goLiveBtn.getAttribute('data-go-live'));
+      const stopLiveBtn = e.target.closest('[data-stop-live]');
+      if (stopLiveBtn) return stopLive(stopLiveBtn.getAttribute('data-stop-live'));
+    });
+
+    /* ── Load all data ────────────────────────────────── */
+    function loadAllData() {
+      loadJournal();
+      CHANNELS.forEach(ch => { loadComments(ch); connectWs(ch); });
+      checkAllStreams();
+    }
+
+    /* ── Init ─────────────────────────────────────────── */
+    if (journalDate) journalDate.valueAsDate = new Date();
+    renderEmpty(videoLibrary, 'No videos uploaded yet.');
+    renderEmpty(shortsGrid, 'No Shorts uploaded yet.');
+    renderEmpty(photoGallery, 'No photos uploaded yet.');
+    syncAuthUI();
+    handleHashRoute();
+    loadAllData();
+    // Poll stream status every 15 seconds
+    setInterval(checkAllStreams, 15000);
+  })();
   </script>
 </body>
 </html>
