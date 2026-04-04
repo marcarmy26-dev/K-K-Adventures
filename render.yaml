@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: kk-fastapi
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+databases:
+  - name: kk-postgres
+    databaseName: keralee_kayden
+    user: kk_user
