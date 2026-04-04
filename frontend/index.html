@@ -228,7 +228,7 @@
             <span class="live-badge" data-live-badge="studio-keralee">LIVE</span>
             <span class="scene-pill">Keralee Solo View</span>
             <video autoplay muted playsinline data-camera-preview="studio-keralee" class="host-only"></video>
-            <video autoplay muted playsinline data-viewer-video="studio-keralee" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <video autoplay muted playsinline webkit-playsinline data-viewer-video="studio-keralee" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
             <div class="viewer-controls" data-viewer-controls="studio-keralee"><button class="vc-unmute" type="button" data-unmute="studio-keralee">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-keralee">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-keralee">↗ Pop Out</button></div>
             <div class="preview-placeholder" data-camera-placeholder="studio-keralee"><h3 style="margin-bottom:10px;">Keralee's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Keralee goes live.</p></div>
           </div>
@@ -270,7 +270,7 @@
             <span class="live-badge" data-live-badge="studio-kayden">LIVE</span>
             <span class="scene-pill">Kayden Solo View</span>
             <video autoplay muted playsinline data-camera-preview="studio-kayden" class="host-only"></video>
-            <video autoplay muted playsinline data-viewer-video="studio-kayden" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <video autoplay muted playsinline webkit-playsinline data-viewer-video="studio-kayden" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
             <div class="viewer-controls" data-viewer-controls="studio-kayden"><button class="vc-unmute" type="button" data-unmute="studio-kayden">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-kayden">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-kayden">↗ Pop Out</button></div>
             <div class="preview-placeholder" data-camera-placeholder="studio-kayden"><h3 style="margin-bottom:10px;">Kayden's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Kayden goes live.</p></div>
           </div>
@@ -312,7 +312,7 @@
             <span class="live-badge" data-live-badge="studio-together">LIVE</span>
             <span class="scene-pill">Together Studio Scene</span>
             <video autoplay muted playsinline data-camera-preview="studio-together" class="host-only"></video>
-            <video autoplay muted playsinline data-viewer-video="studio-together" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <video autoplay muted playsinline webkit-playsinline data-viewer-video="studio-together" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
             <div class="viewer-controls" data-viewer-controls="studio-together"><button class="vc-unmute" type="button" data-unmute="studio-together">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-together">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-together">↗ Pop Out</button></div>
             <div class="preview-placeholder" data-camera-placeholder="studio-together"><h3 style="margin-bottom:10px;">Together Studio</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when both hosts go live.</p></div>
           </div>
@@ -620,13 +620,29 @@
     async function whepPlayback(whepUrl,videoEl,retries){
       retries=retries||0;
       console.log('[WHEP] Connecting attempt',retries+1,'to:',whepUrl);
+      // Ensure the video element is visible and ready before WebRTC tracks arrive
+      videoEl.style.display='block';
+      videoEl.setAttribute('playsinline','');
+      videoEl.setAttribute('webkit-playsinline','');
       if(viewerPCs[whepUrl]){try{viewerPCs[whepUrl].close()}catch(_){}}
       var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
       pc.addTransceiver('video',{direction:'recvonly'});
       pc.addTransceiver('audio',{direction:'recvonly'});
       pc.ontrack=function(event){
-        console.log('[WHEP] Got track:',event.track.kind);
-        if(event.streams&&event.streams[0]){videoEl.srcObject=event.streams[0];videoEl.play().catch(function(e){console.log('[WHEP] play() blocked:',e.message)})}
+        console.log('[WHEP] Got track:',event.track.kind,'streams:',event.streams.length);
+        if(event.streams&&event.streams.length>0&&event.streams[0]){
+          videoEl.srcObject=event.streams[0];
+        }else{
+          console.log('[WHEP] No streams array — building MediaStream manually');
+          if(!videoEl.srcObject)videoEl.srcObject=new MediaStream();
+          videoEl.srcObject.addTrack(event.track);
+        }
+        videoEl.muted=true;
+        videoEl.playsInline=true;
+        videoEl.play().catch(function(e){
+          console.log('[WHEP] play() blocked, retrying muted in 500ms:',e.message);
+          setTimeout(function(){videoEl.muted=true;videoEl.play().catch(function(){})},500);
+        });
       };
       pc.onconnectionstatechange=function(){console.log('[WHEP] State:',pc.connectionState)};
       await pc.setLocalDescription(await pc.createOffer());
@@ -665,10 +681,10 @@
       const viewerVideo=document.querySelector('[data-viewer-video="'+channel+'"]');
       const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
       if(isLive&&whepUrl&&authRole!=='host'){
-        if(viewerVideo){viewerVideo.style.display='block';var vc=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc)vc.classList.add('show');whepPlayback(whepUrl,viewerVideo).catch(function(e){console.warn('WHEP error:',e)})}
+        if(viewerVideo){viewerVideo.style.opacity='1';viewerVideo.style.zIndex='2';var vc=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc)vc.classList.add('show');whepPlayback(whepUrl,viewerVideo).catch(function(e){console.warn('WHEP error:',e)})}
         if(placeholder)placeholder.style.display='none';
       }else if(!isLive&&authRole!=='host'){
-        if(viewerVideo){viewerVideo.style.display='none';viewerVideo.srcObject=null;var vc2=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc2)vc2.classList.remove('show')}
+        if(viewerVideo){viewerVideo.style.opacity='0';viewerVideo.style.zIndex='0';viewerVideo.srcObject=null;var vc2=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc2)vc2.classList.remove('show')}
         if(placeholder)placeholder.style.display='grid';
       }
     }
@@ -733,7 +749,8 @@
     function connectWs(channel){
       if(wsConnections[channel])return;
       const proto=location.protocol==='https:'?'wss:':'ws:';
-      const wsUrl=proto+'//'+location.host+'/ws/comments/'+channel;
+      const wsHost=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?location.host:'k-k-adventures-1.onrender.com';
+      const wsUrl=proto+'//'+wsHost+'/ws/comments/'+channel;
       try{
         const ws=new WebSocket(wsUrl);
         ws.onmessage=event=>{
@@ -782,7 +799,11 @@
 
     function expandStream(channel){
       var src=document.querySelector('[data-viewer-video="'+channel+'"]');
-      if(!src||!src.srcObject)return;
+      if(!src||!src.srcObject){
+        var camsrc=document.querySelector('[data-camera-preview="'+channel+'"]');
+        if(camsrc&&camsrc.srcObject){src=camsrc}
+        else{alert('No active stream to expand. Wait for the host to go live.');return}
+      }
       fsVideo.srcObject=src.srcObject;
       fsVideo.muted=true;
       fsVideo.play().catch(function(){});
@@ -802,8 +823,12 @@
 
     function popoutStream(channel){
       var src=document.querySelector('[data-viewer-video="'+channel+'"]');
-      if(!src||!src.srcObject)return;
-      var w=window.open('','_blank','width=960,height=540,noopener');
+      if(!src||!src.srcObject){
+        var camsrc=document.querySelector('[data-camera-preview="'+channel+'"]');
+        if(camsrc&&camsrc.srcObject){src=camsrc}
+        else{alert('No active stream to pop out. Wait for the host to go live.');return}
+      }
+      var w=window.open('','_blank','width=960,height=540');
       if(!w)return;
       w.document.title='Live: '+channel.replace('studio-','');
       w.document.body.style.cssText='margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh';
