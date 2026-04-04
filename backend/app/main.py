@@ -1,11 +1,10 @@
 """
-Keralee & Kayden Backend — v2
-JWT auth · host/viewer roles · PostgreSQL · Mux live streaming
+Keralee & Kayden Backend — v3
+JWT auth · host/viewer roles · PostgreSQL · Cloudflare Stream (WHIP/WHEP)
 """
 
 import os
 import re
-import base64
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
@@ -26,8 +25,8 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-MUX_TOKEN_ID = os.getenv("MUX_TOKEN_ID", "")
-MUX_TOKEN_SECRET = os.getenv("MUX_TOKEN_SECRET", "")
+CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID", "")
+CF_API_TOKEN = os.getenv("CF_API_TOKEN", "")
 HOST_USERNAME = os.getenv("HOST_USERNAME", "admin")
 HOST_PASSWORD = os.getenv("HOST_PASSWORD", "FamilyOnly123")
 JWT_ALGORITHM = "HS256"
@@ -45,7 +44,7 @@ class UserRow(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
-    role = Column(String(20), nullable=False, default="viewer")  # host | viewer
+    role = Column(String(20), nullable=False, default="viewer")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -73,9 +72,9 @@ class StreamRow(Base):
     __tablename__ = "streams"
     id = Column(Integer, primary_key=True, index=True)
     channel = Column(String(50), unique=True, nullable=False, index=True)
-    mux_stream_id = Column(String(255), nullable=True)
-    mux_stream_key = Column(String(255), nullable=True)
-    mux_playback_id = Column(String(255), nullable=True)
+    cf_input_uid = Column(String(255), nullable=True)
+    cf_whip_url = Column(Text, nullable=True)
+    cf_whep_url = Column(Text, nullable=True)
     is_live = Column(Boolean, default=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -124,15 +123,6 @@ def require_host(user: dict = Depends(get_current_user)):
     if user.get("role") != "host":
         raise HTTPException(status_code=403, detail="Host access required")
     return user
-
-
-def optional_user(creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme)):
-    if not creds:
-        return None
-    try:
-        return decode_token(creds.credentials)
-    except Exception:
-        return None
 
 
 # ── Seed host account on startup ──────────────────────────────────────
@@ -209,52 +199,44 @@ class JournalCreate(BaseModel):
     story: str
 
 
-# ── Mux helpers ──────────────────────────────────────────────────────
-MUX_API = "https://api.mux.com/video/v1"
+# ── Cloudflare Stream helpers ─────────────────────────────────────────
+CF_API = "https://api.cloudflare.com/client/v4"
 
 
-def mux_headers() -> dict:
-    creds = base64.b64encode(f"{MUX_TOKEN_ID}:{MUX_TOKEN_SECRET}".encode()).decode()
-    return {"Authorization": f"Basic {creds}", "Content-Type": "application/json"}
+def cf_headers() -> dict:
+    return {"Authorization": f"Bearer {CF_API_TOKEN}", "Content-Type": "application/json"}
 
 
-async def mux_create_stream() -> dict:
-    """Create a Mux live stream and return stream details."""
+async def cf_create_live_input(name: str) -> dict:
+    """Create a Cloudflare Stream live input with WHIP/WHEP URLs."""
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            f"{MUX_API}/live-streams",
-            headers=mux_headers(),
+            f"{CF_API}/accounts/{CF_ACCOUNT_ID}/stream/live_inputs",
+            headers=cf_headers(),
             json={
-                "playback_policy": ["public"],
-                "new_asset_settings": {"playback_policy": ["public"]},
-                "reduced_latency": True,
+                "meta": {"name": name},
+                "recording": {"mode": "automatic"},
             },
         )
-        if resp.status_code not in (200, 201):
-            raise HTTPException(status_code=502, detail=f"Mux error: {resp.text}")
-        return resp.json()["data"]
+        data = resp.json()
+        if not data.get("success"):
+            errors = data.get("errors", [])
+            detail = errors[0].get("message", str(data)) if errors else str(data)
+            raise HTTPException(status_code=502, detail=f"Cloudflare error: {detail}")
+        return data["result"]
 
 
-async def mux_disable_stream(stream_id: str):
-    """Disable/end a Mux live stream."""
+async def cf_delete_live_input(input_uid: str):
+    """Delete a Cloudflare Stream live input."""
     async with httpx.AsyncClient() as client:
-        await client.put(
-            f"{MUX_API}/live-streams/{stream_id}/disable",
-            headers=mux_headers(),
-        )
-
-
-async def mux_enable_stream(stream_id: str):
-    """Re-enable a Mux live stream."""
-    async with httpx.AsyncClient() as client:
-        await client.put(
-            f"{MUX_API}/live-streams/{stream_id}/enable",
-            headers=mux_headers(),
+        await client.delete(
+            f"{CF_API}/accounts/{CF_ACCOUNT_ID}/stream/live_inputs/{input_uid}",
+            headers=cf_headers(),
         )
 
 
 # ── FastAPI app ──────────────────────────────────────────────────────
-app = FastAPI(title="Keralee & Kayden Backend", version="2.0.0")
+app = FastAPI(title="Keralee & Kayden Backend", version="3.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -273,7 +255,7 @@ def on_startup():
 # ── Health ────────────────────────────────────────────────────────────
 @app.get("/api/health")
 def health():
-    return {"ok": True, "service": "kk-fastapi", "version": "2.0.0", "channels": CHANNELS}
+    return {"ok": True, "service": "kk-fastapi", "version": "3.0.0", "channels": CHANNELS}
 
 
 # ── Auth endpoints ────────────────────────────────────────────────────
@@ -393,61 +375,59 @@ def delete_journal(entry_id: int, user: dict = Depends(require_host), db: Sessio
     return {"ok": True}
 
 
-# ── Streaming (Mux) ──────────────────────────────────────────────────
+# ── Streaming (Cloudflare Stream WHIP/WHEP) ───────────────────────────
 @app.get("/api/streams/{channel}")
 def get_stream_status(channel: str, db: Session = Depends(get_db)):
-    """Public: check if a channel is live and get playback ID."""
+    """Public: check if a channel is live and get WHEP playback URL."""
     if channel not in CHANNELS:
         raise HTTPException(status_code=404, detail="Unknown channel")
     row = db.query(StreamRow).filter(StreamRow.channel == channel).first()
     if not row or not row.is_live:
-        return {"channel": channel, "is_live": False, "playback_id": None}
-    return {"channel": channel, "is_live": True, "playback_id": row.mux_playback_id}
+        return {"channel": channel, "is_live": False, "whep_url": None}
+    return {"channel": channel, "is_live": True, "whep_url": row.cf_whep_url}
 
 
 @app.post("/api/streams/{channel}/start")
 async def start_stream(channel: str, user: dict = Depends(require_host), db: Session = Depends(get_db)):
-    """Host only: create or reuse a Mux live stream for this channel."""
+    """Host only: create a Cloudflare Stream live input and return WHIP URL."""
     if channel not in CHANNELS:
         raise HTTPException(status_code=404, detail="Unknown channel")
-    if not MUX_TOKEN_ID or not MUX_TOKEN_SECRET:
-        raise HTTPException(status_code=500, detail="Mux credentials not configured")
+    if not CF_ACCOUNT_ID or not CF_API_TOKEN:
+        raise HTTPException(status_code=500, detail="Cloudflare Stream credentials not configured")
 
     row = db.query(StreamRow).filter(StreamRow.channel == channel).first()
 
-    # Reuse existing stream or create new
-    if row and row.mux_stream_id:
+    # Delete old live input if exists
+    if row and row.cf_input_uid:
         try:
-            await mux_enable_stream(row.mux_stream_id)
+            await cf_delete_live_input(row.cf_input_uid)
         except Exception:
-            # If re-enable fails, create fresh
-            data = await mux_create_stream()
-            row.mux_stream_id = data["id"]
-            row.mux_stream_key = data["stream_key"]
-            row.mux_playback_id = data["playback_ids"][0]["id"]
-    else:
-        data = await mux_create_stream()
-        if not row:
-            row = StreamRow(channel=channel)
-            db.add(row)
-        row.mux_stream_id = data["id"]
-        row.mux_stream_key = data["stream_key"]
-        row.mux_playback_id = data["playback_ids"][0]["id"]
+            pass
 
+    # Create fresh live input
+    result = await cf_create_live_input(channel)
+    whip_url = result.get("webRTC", {}).get("url", "")
+    whep_url = result.get("webRTCPlayback", {}).get("url", "")
+
+    if not row:
+        row = StreamRow(channel=channel)
+        db.add(row)
+
+    row.cf_input_uid = result["uid"]
+    row.cf_whip_url = whip_url
+    row.cf_whep_url = whep_url
     row.is_live = True
     row.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(row)
 
-    await broadcast(channel, {"type": "stream_started", "channel": channel, "playback_id": row.mux_playback_id})
+    await broadcast(channel, {"type": "stream_started", "channel": channel, "whep_url": whep_url})
 
     return {
         "ok": True,
         "channel": channel,
-        "stream_key": row.mux_stream_key,
-        "rtmp_url": "rtmps://global-live.mux.com:443/app",
-        "whip_url": f"https://stream.mux.com/{row.mux_stream_key}/whip",
-        "playback_id": row.mux_playback_id,
+        "whip_url": whip_url,
+        "whep_url": whep_url,
     }
 
 
@@ -459,12 +439,15 @@ async def stop_stream(channel: str, user: dict = Depends(require_host), db: Sess
     row = db.query(StreamRow).filter(StreamRow.channel == channel).first()
     if not row:
         return {"ok": True, "detail": "No stream found"}
-    if row.mux_stream_id:
+    if row.cf_input_uid:
         try:
-            await mux_disable_stream(row.mux_stream_id)
+            await cf_delete_live_input(row.cf_input_uid)
         except Exception:
             pass
     row.is_live = False
+    row.cf_input_uid = None
+    row.cf_whip_url = None
+    row.cf_whep_url = None
     row.updated_at = datetime.now(timezone.utc)
     db.commit()
     await broadcast(channel, {"type": "stream_stopped", "channel": channel})

@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Keralee & Kayden Adventure Channel</title>
-  <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3/dist/mux-player.min.js" defer></script>
   <style>
     :root{
       --bg1:#09111f; --bg2:#12203b; --panel:rgba(18,28,54,.96); --line:rgba(255,255,255,.08);
@@ -43,9 +42,7 @@
     .page-shell{padding:24px 0 40px}
     .page{display:none}
     .page.active{display:block}
-    .hero,.two-col,.three-col,.studio-grid,.route-grid,.comment-grid,.library-grid,.photo-grid,.shorts-grid,.journal-grid,.hero-side,.studio-seats{
-      display:grid;gap:16px
-    }
+    .hero,.two-col,.three-col,.studio-grid,.route-grid,.comment-grid,.library-grid,.photo-grid,.shorts-grid,.journal-grid,.hero-side,.studio-seats{display:grid;gap:16px}
     .hero{grid-template-columns:1.15fr .85fr}
     .hero-side{grid-template-columns:repeat(2,minmax(0,1fr))}
     .two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -58,17 +55,10 @@
     .photo-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
     .shorts-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
     .journal-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-    .card,.panel,.media-item,.photo-item,.short-item,.journal-item,.comment-item,.route-card,.status-card,.seat-card{
-      background:linear-gradient(180deg,rgba(18,28,54,.96),rgba(10,16,31,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)
-    }
+    .card,.panel,.media-item,.photo-item,.short-item,.journal-item,.comment-item,.route-card,.status-card,.seat-card{background:linear-gradient(180deg,rgba(18,28,54,.96),rgba(10,16,31,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
     .hero-card,.panel,.route-card,.status-card{padding:22px;position:relative;overflow:hidden}
-    .hero-card::before,.panel::before,.route-card::before{
-      content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-60px;bottom:-60px;
-      background:linear-gradient(135deg,rgba(255,111,182,.16),rgba(110,183,255,.16))
-    }
-    .eyebrow,.pill,.live-badge,.scene-pill,.comment-status,.auth-state{
-      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-weight:700
-    }
+    .hero-card::before,.panel::before,.route-card::before{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-60px;bottom:-60px;background:linear-gradient(135deg,rgba(255,111,182,.16),rgba(110,183,255,.16))}
+    .eyebrow,.pill,.live-badge,.scene-pill,.comment-status,.auth-state{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-weight:700}
     h1,h2,h3,h4{margin:0}
     .hero h1{font-size:clamp(2.2rem,4vw,4.2rem);line-height:1.02;letter-spacing:-.03em;max-width:11ch;margin-top:18px}
     .gradient-text{background:linear-gradient(135deg,var(--gold),var(--pink),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -90,7 +80,7 @@
     .locked-banner{background:rgba(255,211,109,.12);color:#fff6d1;border-color:rgba(255,211,109,.18)}
     .comment-safe-note{background:rgba(110,183,255,.12);color:#e4f1ff;border-color:rgba(110,183,255,.2)}
     .preview{aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(255,111,182,.22),rgba(110,183,255,.18));border:1px solid rgba(255,255,255,.1);position:relative;display:grid;place-items:center}
-    .preview video,.preview mux-player{width:100%;height:100%;object-fit:cover;background:#060b16}
+    .preview video{width:100%;height:100%;object-fit:cover;background:#060b16}
     .preview-placeholder{text-align:center;padding:20px;color:#fff}
     .live-badge{position:absolute;left:14px;top:14px;background:rgba(255,58,58,.92);display:none;z-index:2}
     .live-badge.show{display:inline-flex}
@@ -114,7 +104,6 @@
     input::placeholder,textarea::placeholder{color:#9fb0d6}
     .comment-list{display:grid;gap:12px}
     .comment-item small{color:var(--muted)}
-    /* Role-based visibility */
     .host-only{display:none!important}
     body.role-host .host-only{display:revert!important}
     body.role-host .viewer-note{display:none!important}
@@ -132,8 +121,6 @@
     .tab-btn{flex:1;padding:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:14px;cursor:pointer;font-weight:700;text-align:center;transition:.18s}
     .tab-btn.active{background:linear-gradient(135deg,var(--gold),#ffb959);color:#0d1529;border-color:transparent}
     .user-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(110,225,182,.14);border:1px solid rgba(110,225,182,.25);color:var(--ok);font-weight:700;font-size:.92rem}
-    .stream-info{margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,211,109,.1);border:1px solid rgba(255,211,109,.2);font-size:.92rem;line-height:1.6;word-break:break-all}
-    .stream-info code{background:rgba(0,0,0,.3);padding:2px 8px;border-radius:8px;font-size:.88rem}
     @media (max-width:1080px){.three-col,.studio-grid,.comment-grid,.route-grid,.studio-seats{grid-template-columns:1fr 1fr}}
     @media (max-width:900px){.hero,.two-col,.three-col,.studio-grid,.comment-grid,.route-grid,.hero-side,.studio-seats,.form-row{grid-template-columns:1fr}}
   </style>
@@ -166,7 +153,6 @@
   </header>
 
   <main class="wrap page-shell">
-    <!-- HOME -->
     <section class="page active" data-page="home">
       <div class="hero">
         <article class="card hero-card">
@@ -188,7 +174,6 @@
       </div>
     </section>
 
-    <!-- CHANNELS -->
     <section class="page" data-page="channels">
       <div class="section-head"><div><h2>Featured channels</h2><p>Each channel has its own dedicated studio page and live stream.</p></div></div>
       <div class="three-col">
@@ -213,7 +198,6 @@
       </div>
     </section>
 
-    <!-- LIVE DIRECTORY -->
     <section class="page" data-page="live">
       <div class="section-head"><div><h2>Live Studio directory</h2><p>See which channels are live and jump into a stream.</p></div></div>
       <div class="route-grid">
@@ -223,7 +207,7 @@
       </div>
     </section>
 
-    <!-- STUDIO: KERALEE -->
+    <!-- STUDIO PAGES (keralee, kayden, together) -->
     <section class="page" data-page="studio-keralee">
       <div class="section-head"><div><h2>Keralee Live Page</h2><p>Keralee's solo stream with live comments and family-safe filtering.</p></div></div>
       <div class="studio-grid">
@@ -232,26 +216,23 @@
           <div class="preview" style="margin-top:14px;" data-preview="studio-keralee">
             <span class="live-badge" data-live-badge="studio-keralee">LIVE</span>
             <span class="scene-pill">Keralee Solo View</span>
-            <!-- Host sees camera, viewer sees Mux player -->
             <video autoplay muted playsinline data-camera-preview="studio-keralee" class="host-only"></video>
-            <div data-player-slot="studio-keralee"></div>
+            <video autoplay playsinline data-viewer-video="studio-keralee" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
             <div class="preview-placeholder" data-camera-placeholder="studio-keralee"><h3 style="margin-bottom:10px;">Keralee's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Keralee goes live.</p></div>
           </div>
-          <!-- Host controls -->
           <div class="action-row host-only" style="margin-top:14px;">
             <button class="btn btn-primary" type="button" data-camera-start="studio-keralee">Turn On Camera</button>
             <button class="btn btn-danger" type="button" data-camera-stop="studio-keralee">Turn Off Camera</button>
             <button class="btn btn-secondary" type="button" data-go-live="studio-keralee">Go Live</button>
             <button class="btn btn-danger hidden" type="button" data-stop-live="studio-keralee">Stop Stream</button>
           </div>
-          <div class="stream-info hidden" data-stream-info="studio-keralee"></div>
           <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
         <article class="panel">
           <h3>About Keralee's page</h3>
           <div class="tag-row"><span class="tag">Toy reviews</span><span class="tag">Product demos</span><span class="tag">Live chat</span></div>
-          <p class="muted">Watch Keralee's live streams and leave family-safe comments. Hosts can manage the stream and moderate comments.</p>
-          <ul class="feature-list"><li>Live streaming powered by Mux</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
+          <p class="muted">Watch Keralee's live streams and leave family-safe comments.</p>
+          <ul class="feature-list"><li>Live streaming via Cloudflare Stream</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
         </article>
       </div>
       <div class="comment-grid" style="margin-top:18px;">
@@ -268,7 +249,6 @@
       </div>
     </section>
 
-    <!-- STUDIO: KAYDEN -->
     <section class="page" data-page="studio-kayden">
       <div class="section-head"><div><h2>Kayden Live Page</h2><p>Kayden's gaming stream with live comments and family-safe filtering.</p></div></div>
       <div class="studio-grid">
@@ -278,7 +258,7 @@
             <span class="live-badge" data-live-badge="studio-kayden">LIVE</span>
             <span class="scene-pill">Kayden Solo View</span>
             <video autoplay muted playsinline data-camera-preview="studio-kayden" class="host-only"></video>
-            <div data-player-slot="studio-kayden"></div>
+            <video autoplay playsinline data-viewer-video="studio-kayden" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
             <div class="preview-placeholder" data-camera-placeholder="studio-kayden"><h3 style="margin-bottom:10px;">Kayden's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Kayden goes live.</p></div>
           </div>
           <div class="action-row host-only" style="margin-top:14px;">
@@ -287,14 +267,13 @@
             <button class="btn btn-secondary" type="button" data-go-live="studio-kayden">Go Live</button>
             <button class="btn btn-danger hidden" type="button" data-stop-live="studio-kayden">Stop Stream</button>
           </div>
-          <div class="stream-info hidden" data-stream-info="studio-kayden"></div>
           <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
         <article class="panel">
           <h3>About Kayden's page</h3>
           <div class="tag-row"><span class="tag">Gaming day</span><span class="tag">Solo page</span><span class="tag">Live chat</span></div>
           <p class="muted">Watch Kayden's gaming sessions and leave family-safe comments.</p>
-          <ul class="feature-list"><li>Live streaming powered by Mux</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
+          <ul class="feature-list"><li>Live streaming via Cloudflare Stream</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
         </article>
       </div>
       <div class="comment-grid" style="margin-top:18px;">
@@ -311,7 +290,6 @@
       </div>
     </section>
 
-    <!-- STUDIO: TOGETHER -->
     <section class="page" data-page="studio-together">
       <div class="section-head"><div><h2>Together Studio Live Page</h2><p>Shared sibling page with one featured live stream and combined comments.</p></div></div>
       <div class="studio-grid">
@@ -321,7 +299,7 @@
             <span class="live-badge" data-live-badge="studio-together">LIVE</span>
             <span class="scene-pill">Together Studio Scene</span>
             <video autoplay muted playsinline data-camera-preview="studio-together" class="host-only"></video>
-            <div data-player-slot="studio-together"></div>
+            <video autoplay playsinline data-viewer-video="studio-together" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
             <div class="preview-placeholder" data-camera-placeholder="studio-together"><h3 style="margin-bottom:10px;">Together Studio</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when both hosts go live.</p></div>
           </div>
           <div class="action-row host-only" style="margin-top:14px;">
@@ -330,7 +308,6 @@
             <button class="btn btn-secondary" type="button" data-go-live="studio-together">Go Live</button>
             <button class="btn btn-danger hidden" type="button" data-stop-live="studio-together">Stop Stream</button>
           </div>
-          <div class="stream-info hidden" data-stream-info="studio-together"></div>
           <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
         <article class="panel">
@@ -356,17 +333,15 @@
       </div>
     </section>
 
-    <!-- VIDEOS -->
     <section class="page" data-page="videos">
       <div class="section-head"><div><h2>Video library</h2><p>Adventure videos, gameplay clips, and reviews.</p></div></div>
       <article class="panel">
-        <div class="upload-zone host-only"><strong>Add adventure videos, gameplay clips, reviews, or park-day memories</strong><div class="mini-note">Host access required to upload or remove videos.</div><input id="videoUpload" type="file" accept="video/*" multiple></div>
+        <div class="upload-zone host-only"><strong>Add adventure videos</strong><div class="mini-note">Host access required.</div><input id="videoUpload" type="file" accept="video/*" multiple></div>
         <div class="locked-banner viewer-note">Video uploads are managed by the hosts.</div>
         <div id="videoLibrary" class="library-grid" style="margin-top:16px;"></div>
       </article>
     </section>
 
-    <!-- SHORTS -->
     <section class="page" data-page="shorts">
       <div class="section-head"><div><h2>Shorts</h2><p>Quick highlights and vertical clips.</p></div></div>
       <div class="two-col">
@@ -375,11 +350,10 @@
           <div class="locked-banner viewer-note">Short uploads are managed by the hosts.</div>
           <div id="shortsGrid" class="shorts-grid" style="margin-top:16px;"></div>
         </article>
-        <article class="panel"><h3>Shorts lane</h3><div class="short-placeholder"><div><span class="tag">Fast clips</span><strong style="display:block; margin-top:10px;">Quick adventures, reactions, and gaming wins</strong></div></div></article>
+        <article class="panel"><h3>Shorts lane</h3><div class="short-placeholder"><div><span class="tag">Fast clips</span><strong style="display:block;margin-top:10px;">Quick adventures, reactions, and gaming wins</strong></div></div></article>
       </div>
     </section>
 
-    <!-- PHOTOS -->
     <section class="page" data-page="photos">
       <div class="section-head"><div><h2>Photo gallery</h2><p>Adventure photos, family fun, and daily memories.</p></div></div>
       <article class="panel">
@@ -389,7 +363,6 @@
       </article>
     </section>
 
-    <!-- JOURNAL -->
     <section class="page" data-page="journal">
       <div class="section-head"><div><h2>Adventure journal</h2><p>Stories and memories from Keralee & Kayden.</p></div></div>
       <div class="two-col">
@@ -418,10 +391,9 @@
 
   <footer class="wrap footer">Built for Keralee & Kayden's adventures. Family-safe, moderated, and host-controlled.</footer>
 
-  <!-- AUTH MODAL -->
   <div id="authModal" class="modal" aria-hidden="true">
     <div class="modal-card">
-      <div class="modal-head"><h3 id="authTitle">Sign In</h3><button class="close-btn" type="button" id="closeAuthBtn">&times;</button></div>
+      <div class="modal-head"><h3>Sign In</h3><button class="close-btn" type="button" id="closeAuthBtn">&times;</button></div>
       <div class="tab-row">
         <button class="tab-btn active" type="button" data-auth-tab="login">Sign In</button>
         <button class="tab-btn" type="button" data-auth-tab="register">Create Account</button>
@@ -437,447 +409,347 @@
   </div>
 
   <script>
-  (function () {
-    /* ── Config ───────────────────────────────────────── */
-    const API = '/api';
-    const CHANNELS = ['studio-keralee', 'studio-kayden', 'studio-together'];
-    const profanityPatterns = [/\bdamn\b/i, /\bhell\b/i, /\bcrap\b/i, /\bwtf\b/i, /\bidiot\b/i, /\bstupid\b/i, /\bshut up\b/i];
+  (function(){
+    const API='/api';
+    const CHANNELS=['studio-keralee','studio-kayden','studio-together'];
+    const profanityPatterns=[/\bdamn\b/i,/\bhell\b/i,/\bcrap\b/i,/\bwtf\b/i,/\bidiot\b/i,/\bstupid\b/i,/\bshut up\b/i];
 
-    /* ── State ────────────────────────────────────────── */
-    let authToken = sessionStorage.getItem('kk_token') || null;
-    let authRole = sessionStorage.getItem('kk_role') || null;
-    let authUsername = sessionStorage.getItem('kk_username') || null;
-    let authMode = 'login';
-    const cameraState = {};
-    const wsConnections = {};
+    let authToken=sessionStorage.getItem('kk_token')||null;
+    let authRole=sessionStorage.getItem('kk_role')||null;
+    let authUsername=sessionStorage.getItem('kk_username')||null;
+    let authMode='login';
+    const cameraState={};
+    const viewerPCs={};
+    const wsConnections={};
 
-    /* ── DOM refs ─────────────────────────────────────── */
-    const body = document.body;
-    const pages = Array.from(document.querySelectorAll('.page'));
-    const authBtn = document.getElementById('authBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userBadge = document.getElementById('userBadge');
-    const authModal = document.getElementById('authModal');
-    const authForm = document.getElementById('authForm');
-    const authUser = document.getElementById('authUser');
-    const authPass = document.getElementById('authPass');
-    const authError = document.getElementById('authError');
-    const authSuccess = document.getElementById('authSuccess');
-    const authSubmitBtn = document.getElementById('authSubmitBtn');
-    const closeAuthBtn = document.getElementById('closeAuthBtn');
-    const journalForm = document.getElementById('journalForm');
-    const journalPosts = document.getElementById('journalPosts');
-    const journalDate = document.getElementById('journalDate');
-    const videoUpload = document.getElementById('videoUpload');
-    const shortUpload = document.getElementById('shortUpload');
-    const photoUpload = document.getElementById('photoUpload');
-    const videoLibrary = document.getElementById('videoLibrary');
-    const shortsGrid = document.getElementById('shortsGrid');
-    const photoGallery = document.getElementById('photoGallery');
+    const body=document.body;
+    const pages=Array.from(document.querySelectorAll('.page'));
+    const authBtn=document.getElementById('authBtn');
+    const logoutBtn=document.getElementById('logoutBtn');
+    const userBadge=document.getElementById('userBadge');
+    const authModal=document.getElementById('authModal');
+    const authForm=document.getElementById('authForm');
+    const authUser=document.getElementById('authUser');
+    const authPass=document.getElementById('authPass');
+    const authError=document.getElementById('authError');
+    const authSuccess=document.getElementById('authSuccess');
+    const authSubmitBtn=document.getElementById('authSubmitBtn');
+    const closeAuthBtn=document.getElementById('closeAuthBtn');
+    const journalForm=document.getElementById('journalForm');
+    const journalPosts=document.getElementById('journalPosts');
+    const journalDate=document.getElementById('journalDate');
+    const videoUpload=document.getElementById('videoUpload');
+    const shortUpload=document.getElementById('shortUpload');
+    const photoUpload=document.getElementById('photoUpload');
+    const videoLibrary=document.getElementById('videoLibrary');
+    const shortsGrid=document.getElementById('shortsGrid');
+    const photoGallery=document.getElementById('photoGallery');
 
-    /* ── Helpers ──────────────────────────────────────── */
-    function escapeHtml(v) {
-      return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-    }
-    function nl2br(v) { return escapeHtml(v).replace(/\n/g,'<br>'); }
-    function formatDate(v) {
-      if (!v) return 'No date';
-      const d = new Date(v + 'T00:00:00');
-      return d.toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' });
-    }
-    function renderEmpty(el, msg) { el.innerHTML = '<div class="empty-state">' + msg + '</div>'; }
+    function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+    function nl2br(v){return esc(v).replace(/\n/g,'<br>')}
+    function fmtDate(v){if(!v)return'No date';const d=new Date(v+'T00:00:00');return d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'})}
+    function renderEmpty(el,msg){el.innerHTML='<div class="empty-state">'+msg+'</div>'}
 
-    async function apiFetch(path, opts = {}) {
-      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-      if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
-      const res = await fetch(API + path, { ...opts, headers });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Request failed');
+    async function apiFetch(path,opts={}){
+      const headers={'Content-Type':'application/json',...(opts.headers||{})};
+      if(authToken)headers['Authorization']='Bearer '+authToken;
+      const res=await fetch(API+path,{...opts,headers});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.detail||'Request failed');
       return data;
     }
 
-    /* ── Auth UI ──────────────────────────────────────── */
-    function syncAuthUI() {
-      const loggedIn = !!authToken;
-      const isHost = authRole === 'host';
-      body.classList.toggle('role-host', isHost);
-      body.classList.toggle('role-viewer', loggedIn && !isHost);
-      authBtn.classList.toggle('hidden', loggedIn);
-      logoutBtn.classList.toggle('hidden', !loggedIn);
-      if (loggedIn) {
-        userBadge.textContent = (isHost ? '🔑 ' : '👤 ') + authUsername;
-        userBadge.classList.remove('hidden');
-      } else {
-        userBadge.classList.add('hidden');
-      }
+    /* ── Auth ──────────────────────────────────────────── */
+    function syncAuthUI(){
+      const loggedIn=!!authToken;
+      const isHost=authRole==='host';
+      body.classList.toggle('role-host',isHost);
+      body.classList.toggle('role-viewer',loggedIn&&!isHost);
+      authBtn.classList.toggle('hidden',loggedIn);
+      logoutBtn.classList.toggle('hidden',!loggedIn);
+      if(loggedIn){userBadge.textContent=(isHost?'🔑 ':'👤 ')+authUsername;userBadge.classList.remove('hidden')}
+      else{userBadge.classList.add('hidden')}
     }
-
-    function openAuth() { authModal.classList.add('show'); authError.textContent = ''; authSuccess.textContent = ''; }
-    function closeAuth() { authModal.classList.remove('show'); }
-
-    authBtn.addEventListener('click', openAuth);
-    closeAuthBtn.addEventListener('click', closeAuth);
-    authModal.addEventListener('click', e => { if (e.target === authModal) closeAuth(); });
-
-    document.querySelectorAll('[data-auth-tab]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        authMode = btn.getAttribute('data-auth-tab');
-        document.querySelectorAll('[data-auth-tab]').forEach(b => b.classList.toggle('active', b === btn));
-        authSubmitBtn.textContent = authMode === 'login' ? 'Sign In' : 'Create Account';
-        authError.textContent = ''; authSuccess.textContent = '';
+    function openAuth(){authModal.classList.add('show');authError.textContent='';authSuccess.textContent=''}
+    function closeAuth(){authModal.classList.remove('show')}
+    authBtn.addEventListener('click',openAuth);
+    closeAuthBtn.addEventListener('click',closeAuth);
+    authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuth()});
+    document.querySelectorAll('[data-auth-tab]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        authMode=btn.getAttribute('data-auth-tab');
+        document.querySelectorAll('[data-auth-tab]').forEach(b=>b.classList.toggle('active',b===btn));
+        authSubmitBtn.textContent=authMode==='login'?'Sign In':'Create Account';
+        authError.textContent='';authSuccess.textContent='';
       });
     });
-
-    authForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      authError.textContent = ''; authSuccess.textContent = '';
-      try {
-        const endpoint = authMode === 'login' ? '/auth/login' : '/auth/register';
-        const data = await apiFetch(endpoint, {
-          method: 'POST',
-          body: JSON.stringify({ username: authUser.value.trim(), password: authPass.value }),
-        });
-        authToken = data.token;
-        authRole = data.role;
-        authUsername = data.username;
-        sessionStorage.setItem('kk_token', authToken);
-        sessionStorage.setItem('kk_role', authRole);
-        sessionStorage.setItem('kk_username', authUsername);
-        syncAuthUI();
-        authSuccess.textContent = 'Signed in as ' + authUsername + ' (' + authRole + ')';
-        authForm.reset();
-        setTimeout(closeAuth, 800);
-        loadAllData();
-      } catch (err) {
-        authError.textContent = err.message;
-      }
+    authForm.addEventListener('submit',async e=>{
+      e.preventDefault();authError.textContent='';authSuccess.textContent='';
+      try{
+        const endpoint=authMode==='login'?'/auth/login':'/auth/register';
+        const data=await apiFetch(endpoint,{method:'POST',body:JSON.stringify({username:authUser.value.trim(),password:authPass.value})});
+        authToken=data.token;authRole=data.role;authUsername=data.username;
+        sessionStorage.setItem('kk_token',authToken);sessionStorage.setItem('kk_role',authRole);sessionStorage.setItem('kk_username',authUsername);
+        syncAuthUI();authSuccess.textContent='Signed in as '+authUsername+' ('+authRole+')';authForm.reset();
+        setTimeout(closeAuth,800);loadAllData();
+      }catch(err){authError.textContent=err.message}
     });
-
-    logoutBtn.addEventListener('click', () => {
-      authToken = null; authRole = null; authUsername = null;
-      sessionStorage.removeItem('kk_token');
-      sessionStorage.removeItem('kk_role');
-      sessionStorage.removeItem('kk_username');
+    logoutBtn.addEventListener('click',()=>{
+      authToken=null;authRole=null;authUsername=null;
+      sessionStorage.removeItem('kk_token');sessionStorage.removeItem('kk_role');sessionStorage.removeItem('kk_username');
       syncAuthUI();
     });
 
-    /* ── Routing ──────────────────────────────────────── */
-    function routeFromHash() {
-      const raw = location.hash.replace(/^#\/?/, '');
-      return raw ? raw.replace(/\//g, '-') : 'home';
+    /* ── Routing ───────────────────────────────────────── */
+    function routeFromHash(){const raw=location.hash.replace(/^#\/?/,'');return raw?raw.replace(/\//g,'-'):'home'}
+    function setRoute(route,pushHash){
+      pages.forEach(p=>p.classList.toggle('active',p.getAttribute('data-page')===route));
+      if(pushHash!==false)location.hash='#/'+route.replace(/-/g,'/');
+      window.scrollTo({top:0,behavior:'smooth'});
+      if(route.startsWith('studio-'))loadComments(route);
+      if(CHANNELS.includes(route))checkStreamStatus(route);
     }
-    function setRoute(route, pushHash) {
-      pages.forEach(p => p.classList.toggle('active', p.getAttribute('data-page') === route));
-      if (pushHash !== false) location.hash = '#/' + route.replace(/-/g, '/');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Load comments when entering a studio page
-      if (route.startsWith('studio-')) loadComments(route);
-      // Check stream status
-      if (CHANNELS.includes(route)) checkStreamStatus(route);
-    }
-    function handleHashRoute() {
-      const route = routeFromHash();
-      const exists = pages.some(p => p.getAttribute('data-page') === route);
-      setRoute(exists ? route : 'home', false);
-    }
-    window.addEventListener('hashchange', handleHashRoute);
+    function handleHashRoute(){const r=routeFromHash();const exists=pages.some(p=>p.getAttribute('data-page')===r);setRoute(exists?r:'home',false)}
+    window.addEventListener('hashchange',handleHashRoute);
 
-    /* ── Comments (API-backed) ────────────────────────── */
-    async function loadComments(channel) {
-      const listNode = document.querySelector('[data-comment-list="' + channel + '"]');
-      if (!listNode) return;
-      try {
-        const items = await apiFetch('/comments/' + channel);
-        if (!items.length) { renderEmpty(listNode, 'No comments yet. Be the first!'); return; }
-        listNode.innerHTML = items.map(item =>
-          '<article class="comment-item"><div class="comment-body">' +
-          '<strong>' + escapeHtml(item.author) + '</strong>' +
-          '<small>' + escapeHtml(item.timestamp) + '</small>' +
-          '<div style="margin-top:8px;line-height:1.7;">' + nl2br(item.message) + '</div>' +
-          (authRole === 'host' ? '<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-comment="' + item.id + '" data-channel="' + channel + '">Delete</button></div>' : '') +
+    /* ── Comments ──────────────────────────────────────── */
+    async function loadComments(channel){
+      const listNode=document.querySelector('[data-comment-list="'+channel+'"]');
+      if(!listNode)return;
+      try{
+        const items=await apiFetch('/comments/'+channel);
+        if(!items.length){renderEmpty(listNode,'No comments yet. Be the first!');return}
+        listNode.innerHTML=items.map(item=>
+          '<article class="comment-item"><div class="comment-body">'+
+          '<strong>'+esc(item.author)+'</strong>'+
+          '<small>'+esc(item.timestamp)+'</small>'+
+          '<div style="margin-top:8px;line-height:1.7;">'+nl2br(item.message)+'</div>'+
+          (authRole==='host'?'<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-comment="'+item.id+'" data-channel="'+channel+'">Delete</button></div>':'')+
           '</div></article>'
         ).join('');
-      } catch (_) { renderEmpty(listNode, 'Could not load comments.'); }
+      }catch(_){renderEmpty(listNode,'Could not load comments.')}
     }
-
-    document.querySelectorAll('[data-comment-form]').forEach(form => {
-      form.addEventListener('submit', async e => {
+    document.querySelectorAll('[data-comment-form]').forEach(form=>{
+      form.addEventListener('submit',async e=>{
         e.preventDefault();
-        const channel = form.getAttribute('data-comment-form');
-        const feedback = document.querySelector('[data-comment-feedback="' + channel + '"]');
-        const author = form.author.value.trim();
-        const message = form.message.value.trim();
-        if (!author || !message) return;
-        if (profanityPatterns.some(p => p.test(message))) { feedback.textContent = 'Comment blocked. Family-safe language required.'; return; }
-        try {
-          await apiFetch('/comments/' + channel, { method: 'POST', body: JSON.stringify({ author, message }) });
-          form.reset(); feedback.textContent = 'Comment posted!';
-          loadComments(channel);
-        } catch (err) { feedback.textContent = err.message; }
+        const channel=form.getAttribute('data-comment-form');
+        const feedback=document.querySelector('[data-comment-feedback="'+channel+'"]');
+        const author=form.author.value.trim();const message=form.message.value.trim();
+        if(!author||!message)return;
+        if(profanityPatterns.some(p=>p.test(message))){feedback.textContent='Comment blocked. Family-safe language required.';return}
+        try{await apiFetch('/comments/'+channel,{method:'POST',body:JSON.stringify({author,message})});form.reset();feedback.textContent='Comment posted!';loadComments(channel)}
+        catch(err){feedback.textContent=err.message}
       });
     });
 
-    /* ── Journal (API-backed) ─────────────────────────── */
-    async function loadJournal() {
-      try {
-        const items = await apiFetch('/journal');
-        if (!items.length) { renderEmpty(journalPosts, 'No adventures published yet.'); return; }
-        journalPosts.innerHTML = items.map(item =>
-          '<article class="journal-item"><div class="journal-body">' +
-          '<strong>' + escapeHtml(item.title) + '</strong>' +
-          '<div class="muted" style="margin-bottom:8px;">' + formatDate(item.date) + ' • ' + escapeHtml(item.host) + ' • ' + escapeHtml(item.category) + '</div>' +
-          '<div style="line-height:1.7;">' + nl2br(item.story) + '</div>' +
-          (authRole === 'host' ? '<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-journal="' + item.id + '">Delete</button></div>' : '') +
+    /* ── Journal ───────────────────────────────────────── */
+    async function loadJournal(){
+      try{
+        const items=await apiFetch('/journal');
+        if(!items.length){renderEmpty(journalPosts,'No adventures published yet.');return}
+        journalPosts.innerHTML=items.map(item=>
+          '<article class="journal-item"><div class="journal-body">'+
+          '<strong>'+esc(item.title)+'</strong>'+
+          '<div class="muted" style="margin-bottom:8px;">'+fmtDate(item.date)+' • '+esc(item.host)+' • '+esc(item.category)+'</div>'+
+          '<div style="line-height:1.7;">'+nl2br(item.story)+'</div>'+
+          (authRole==='host'?'<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-journal="'+item.id+'">Delete</button></div>':'')+
           '</div></article>'
         ).join('');
-      } catch (_) { renderEmpty(journalPosts, 'Could not load journal.'); }
+      }catch(_){renderEmpty(journalPosts,'Could not load journal.')}
     }
-
-    if (journalForm) {
-      journalForm.addEventListener('submit', async e => {
+    if(journalForm){
+      journalForm.addEventListener('submit',async e=>{
         e.preventDefault();
-        try {
-          await apiFetch('/journal', { method: 'POST', body: JSON.stringify({
-            title: document.getElementById('journalTitle').value.trim(),
-            date: document.getElementById('journalDate').value,
-            host: document.getElementById('journalHost').value,
-            category: document.getElementById('journalCategory').value,
-            story: document.getElementById('journalStory').value.trim(),
-          })});
-          journalForm.reset();
-          if (journalDate) journalDate.valueAsDate = new Date();
-          loadJournal();
-        } catch (err) { alert(err.message); }
+        try{
+          await apiFetch('/journal',{method:'POST',body:JSON.stringify({
+            title:document.getElementById('journalTitle').value.trim(),
+            date:document.getElementById('journalDate').value,
+            host:document.getElementById('journalHost').value,
+            category:document.getElementById('journalCategory').value,
+            story:document.getElementById('journalStory').value.trim(),
+          })});journalForm.reset();if(journalDate)journalDate.valueAsDate=new Date();loadJournal();
+        }catch(err){alert(err.message)}
       });
     }
 
-    /* ── Streaming ────────────────────────────────────── */
-    async function checkStreamStatus(channel) {
-      try {
-        const data = await apiFetch('/streams/' + channel);
-        updateLiveUI(channel, data.is_live, data.playback_id);
-      } catch (_) {}
-    }
-
-    function updateLiveUI(channel, isLive, playbackId) {
-      // Update all live status pills
-      document.querySelectorAll('[data-live-status="' + channel + '"]').forEach(el => {
-        el.textContent = isLive ? '🔴 LIVE' : 'Offline';
-        el.style.background = isLive ? 'rgba(255,58,58,.2)' : '';
-        el.style.color = isLive ? '#ff6b6b' : '';
+    /* ── WHIP Broadcast (host → Cloudflare) ────────────── */
+    async function whipBroadcast(whipUrl, mediaStream){
+      const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});
+      mediaStream.getTracks().forEach(track=>{
+        pc.addTransceiver(track,{direction:'sendonly'});
       });
-      // Update live badge
-      const badge = document.querySelector('[data-live-badge="' + channel + '"]');
-      if (badge) badge.classList.toggle('show', isLive);
-
-      // Show Mux player for viewers when live
-      const playerSlot = document.querySelector('[data-player-slot="' + channel + '"]');
-      const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
-      if (playerSlot && isLive && playbackId && authRole !== 'host') {
-        playerSlot.innerHTML = '<mux-player playback-id="' + playbackId + '" stream-type="live" autoplay muted style="width:100%;height:100%;--media-object-fit:cover;"></mux-player>';
-        if (placeholder) placeholder.style.display = 'none';
-      } else if (playerSlot && !isLive && authRole !== 'host') {
-        playerSlot.innerHTML = '';
-        if (placeholder) placeholder.style.display = 'grid';
-      }
-    }
-
-    async function checkAllStreams() {
-      for (const ch of CHANNELS) { await checkStreamStatus(ch); }
-    }
-
-    /* ── Camera (host only) ───────────────────────────── */
-    async function startCamera(channel) {
-      try {
-        if (!cameraState[channel]) {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          cameraState[channel] = { stream, live: false, pc: null };
-        }
-        const video = document.querySelector('[data-camera-preview="' + channel + '"]');
-        const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
-        if (video) video.srcObject = cameraState[channel].stream;
-        if (placeholder) placeholder.style.display = 'none';
-      } catch (_) { alert('Camera access was not allowed.'); }
-    }
-
-    function stopCamera(channel) {
-      const state = cameraState[channel];
-      if (state) {
-        if (state.stream) state.stream.getTracks().forEach(t => t.stop());
-        if (state.pc) { state.pc.close(); state.pc = null; }
-      }
-      delete cameraState[channel];
-      const video = document.querySelector('[data-camera-preview="' + channel + '"]');
-      const placeholder = document.querySelector('[data-camera-placeholder="' + channel + '"]');
-      const badge = document.querySelector('[data-live-badge="' + channel + '"]');
-      if (video) video.srcObject = null;
-      if (placeholder) placeholder.style.display = 'grid';
-      if (badge) badge.classList.remove('show');
-    }
-
-    async function goLive(channel) {
-      if (!authToken || authRole !== 'host') { openAuth(); return; }
-      try {
-        // Start camera if not already on
-        if (!cameraState[channel]) await startCamera(channel);
-        // Tell backend to create/enable Mux stream
-        const data = await apiFetch('/streams/' + channel + '/start', { method: 'POST' });
-        // Show stream info to host
-        const infoEl = document.querySelector('[data-stream-info="' + channel + '"]');
-        if (infoEl) {
-          infoEl.classList.remove('hidden');
-          infoEl.innerHTML =
-            '<strong>Stream is live!</strong><br>' +
-            'RTMP URL: <code>' + escapeHtml(data.rtmp_url) + '</code><br>' +
-            'Stream Key: <code>' + escapeHtml(data.stream_key) + '</code><br>' +
-            '<div class="muted" style="margin-top:8px;">Use these with OBS/Streamlabs, or the camera preview above is broadcasting via your browser.</div>';
-        }
-        // Try WHIP browser streaming
-        try {
-          await startWhipStream(channel, data.whip_url);
-        } catch (whipErr) {
-          console.warn('WHIP streaming not available, use OBS with RTMP:', whipErr);
-        }
-        // Update UI
-        const goBtn = document.querySelector('[data-go-live="' + channel + '"]');
-        const stopBtn = document.querySelector('[data-stop-live="' + channel + '"]');
-        if (goBtn) goBtn.classList.add('hidden');
-        if (stopBtn) stopBtn.classList.remove('hidden');
-        updateLiveUI(channel, true, data.playback_id);
-      } catch (err) { alert('Could not start stream: ' + err.message); }
-    }
-
-    async function stopLive(channel) {
-      try {
-        await apiFetch('/streams/' + channel + '/stop', { method: 'POST' });
-        // Close WHIP connection
-        if (cameraState[channel] && cameraState[channel].pc) {
-          cameraState[channel].pc.close();
-          cameraState[channel].pc = null;
-        }
-        const infoEl = document.querySelector('[data-stream-info="' + channel + '"]');
-        if (infoEl) infoEl.classList.add('hidden');
-        const goBtn = document.querySelector('[data-go-live="' + channel + '"]');
-        const stopBtn = document.querySelector('[data-stop-live="' + channel + '"]');
-        if (goBtn) goBtn.classList.remove('hidden');
-        if (stopBtn) stopBtn.classList.add('hidden');
-        updateLiveUI(channel, false, null);
-      } catch (err) { alert('Could not stop stream: ' + err.message); }
-    }
-
-    async function startWhipStream(channel, whipUrl) {
-      const state = cameraState[channel];
-      if (!state || !state.stream) throw new Error('No camera stream');
-      const pc = new RTCPeerConnection();
-      state.stream.getTracks().forEach(track => pc.addTrack(track, state.stream));
-      const offer = await pc.createOffer();
+      const offer=await pc.createOffer();
       await pc.setLocalDescription(offer);
-      // Wait for ICE gathering to complete
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => resolve(), 3000);
-        if (pc.iceGatheringState === 'complete') { clearTimeout(timeout); resolve(); }
-        else pc.addEventListener('icegatheringstatechange', () => {
-          if (pc.iceGatheringState === 'complete') { clearTimeout(timeout); resolve(); }
+      await new Promise((resolve)=>{
+        const t=setTimeout(resolve,3000);
+        if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
+        else pc.addEventListener('icegatheringstatechange',()=>{
+          if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
         });
       });
-      const resp = await fetch(whipUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/sdp' },
-        body: pc.localDescription.sdp,
+      const resp=await fetch(whipUrl,{method:'POST',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
+      if(!resp.ok)throw new Error('WHIP failed: '+resp.status+' '+await resp.text());
+      const answer=await resp.text();
+      await pc.setRemoteDescription({type:'answer',sdp:answer});
+      return pc;
+    }
+
+    /* ── WHEP Playback (viewer ← Cloudflare) ───────────── */
+    async function whepPlayback(whepUrl,videoEl){
+      if(viewerPCs[whepUrl]){try{viewerPCs[whepUrl].close()}catch(_){}}
+      const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});
+      pc.addTransceiver('video',{direction:'recvonly'});
+      pc.addTransceiver('audio',{direction:'recvonly'});
+      pc.ontrack=event=>{if(event.streams&&event.streams[0])videoEl.srcObject=event.streams[0]};
+      const offer=await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await new Promise((resolve)=>{
+        const t=setTimeout(resolve,3000);
+        if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
+        else pc.addEventListener('icegatheringstatechange',()=>{
+          if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
+        });
       });
-      if (!resp.ok) throw new Error('WHIP endpoint returned ' + resp.status);
-      const answer = await resp.text();
-      await pc.setRemoteDescription({ type: 'answer', sdp: answer });
-      state.pc = pc;
+      const resp=await fetch(whepUrl,{method:'POST',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
+      if(!resp.ok)throw new Error('WHEP failed: '+resp.status);
+      const answer=await resp.text();
+      await pc.setRemoteDescription({type:'answer',sdp:answer});
+      viewerPCs[whepUrl]=pc;
+      return pc;
     }
 
-    /* ── WebSocket for real-time updates ──────────────── */
-    function connectWs(channel) {
-      if (wsConnections[channel]) return;
-      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = proto + '//' + location.host + '/ws/comments/' + channel;
-      try {
-        const ws = new WebSocket(wsUrl);
-        ws.onmessage = event => {
-          const msg = JSON.parse(event.data);
-          if (msg.type === 'comment_created' || msg.type === 'comment_deleted' || msg.type === 'comments_cleared') {
-            loadComments(channel);
-          }
-          if (msg.type === 'stream_started') updateLiveUI(channel, true, msg.playback_id);
-          if (msg.type === 'stream_stopped') updateLiveUI(channel, false, null);
+    /* ── Streaming ─────────────────────────────────────── */
+    async function checkStreamStatus(channel){
+      try{
+        const data=await apiFetch('/streams/'+channel);
+        updateLiveUI(channel,data.is_live,data.whep_url);
+      }catch(_){}
+    }
+
+    function updateLiveUI(channel,isLive,whepUrl){
+      document.querySelectorAll('[data-live-status="'+channel+'"]').forEach(el=>{
+        el.textContent=isLive?'🔴 LIVE':'Offline';
+        el.style.background=isLive?'rgba(255,58,58,.2)':'';
+        el.style.color=isLive?'#ff6b6b':'';
+      });
+      const badge=document.querySelector('[data-live-badge="'+channel+'"]');
+      if(badge)badge.classList.toggle('show',isLive);
+      const viewerVideo=document.querySelector('[data-viewer-video="'+channel+'"]');
+      const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+      if(isLive&&whepUrl&&authRole!=='host'){
+        if(viewerVideo){viewerVideo.style.display='block';whepPlayback(whepUrl,viewerVideo).catch(e=>console.warn('WHEP error:',e))}
+        if(placeholder)placeholder.style.display='none';
+      }else if(!isLive&&authRole!=='host'){
+        if(viewerVideo){viewerVideo.style.display='none';viewerVideo.srcObject=null}
+        if(placeholder)placeholder.style.display='grid';
+      }
+    }
+
+    async function checkAllStreams(){for(const ch of CHANNELS)await checkStreamStatus(ch)}
+
+    /* ── Camera (host) ─────────────────────────────────── */
+    async function startCamera(channel){
+      try{
+        if(!cameraState[channel]){
+          const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+          cameraState[channel]={stream,pc:null};
+        }
+        const video=document.querySelector('[data-camera-preview="'+channel+'"]');
+        const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+        if(video)video.srcObject=cameraState[channel].stream;
+        if(placeholder)placeholder.style.display='none';
+      }catch(_){alert('Camera access was not allowed.')}
+    }
+
+    function stopCamera(channel){
+      const state=cameraState[channel];
+      if(state){if(state.stream)state.stream.getTracks().forEach(t=>t.stop());if(state.pc){state.pc.close();state.pc=null}}
+      delete cameraState[channel];
+      const video=document.querySelector('[data-camera-preview="'+channel+'"]');
+      const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+      const badge=document.querySelector('[data-live-badge="'+channel+'"]');
+      if(video)video.srcObject=null;
+      if(placeholder)placeholder.style.display='grid';
+      if(badge)badge.classList.remove('show');
+    }
+
+    async function goLive(channel){
+      if(!authToken||authRole!=='host'){openAuth();return}
+      try{
+        if(!cameraState[channel])await startCamera(channel);
+        const data=await apiFetch('/streams/'+channel+'/start',{method:'POST'});
+        // Broadcast camera to Cloudflare via WHIP
+        const pc=await whipBroadcast(data.whip_url,cameraState[channel].stream);
+        cameraState[channel].pc=pc;
+        const goBtn=document.querySelector('[data-go-live="'+channel+'"]');
+        const stopBtn=document.querySelector('[data-stop-live="'+channel+'"]');
+        if(goBtn)goBtn.classList.add('hidden');
+        if(stopBtn)stopBtn.classList.remove('hidden');
+        updateLiveUI(channel,true,data.whep_url);
+      }catch(err){alert('Could not start stream: '+err.message)}
+    }
+
+    async function stopLive(channel){
+      try{
+        await apiFetch('/streams/'+channel+'/stop',{method:'POST'});
+        if(cameraState[channel]&&cameraState[channel].pc){cameraState[channel].pc.close();cameraState[channel].pc=null}
+        const goBtn=document.querySelector('[data-go-live="'+channel+'"]');
+        const stopBtn=document.querySelector('[data-stop-live="'+channel+'"]');
+        if(goBtn)goBtn.classList.remove('hidden');
+        if(stopBtn)stopBtn.classList.add('hidden');
+        updateLiveUI(channel,false,null);
+      }catch(err){alert('Could not stop stream: '+err.message)}
+    }
+
+    /* ── WebSocket ─────────────────────────────────────── */
+    function connectWs(channel){
+      if(wsConnections[channel])return;
+      const proto=location.protocol==='https:'?'wss:':'ws:';
+      const wsUrl=proto+'//'+location.host+'/ws/comments/'+channel;
+      try{
+        const ws=new WebSocket(wsUrl);
+        ws.onmessage=event=>{
+          const msg=JSON.parse(event.data);
+          if(msg.type==='comment_created'||msg.type==='comment_deleted'||msg.type==='comments_cleared')loadComments(channel);
+          if(msg.type==='stream_started')updateLiveUI(channel,true,msg.whep_url);
+          if(msg.type==='stream_stopped')updateLiveUI(channel,false,null);
         };
-        ws.onclose = () => { delete wsConnections[channel]; setTimeout(() => connectWs(channel), 5000); };
-        wsConnections[channel] = ws;
-      } catch (_) {}
+        ws.onclose=()=>{delete wsConnections[channel];setTimeout(()=>connectWs(channel),5000)};
+        wsConnections[channel]=ws;
+      }catch(_){}
     }
 
-    /* ── File uploads (browser-local, host only) ──────── */
-    function makeVideoCard(file) {
-      const url = URL.createObjectURL(file);
-      return '<article class="media-item"><video controls src="' + url + '"></video><div class="media-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">' + (Math.round(file.size / 1024 / 1024 * 10) / 10) + ' MB</div></div></article>';
-    }
-    function makePhotoCard(file) {
-      const url = URL.createObjectURL(file);
-      return '<article class="photo-item"><img src="' + url + '" alt="Photo"><div class="media-meta"><strong>' + escapeHtml(file.name) + '</strong></div></article>';
-    }
-    function makeShortCard(file) {
-      const url = URL.createObjectURL(file);
-      return '<article class="short-item"><video controls playsinline src="' + url + '"></video><div class="short-meta"><strong>' + escapeHtml(file.name) + '</strong><div class="muted">' + (Math.round(file.size / 1024 / 1024 * 10) / 10) + ' MB</div></div></article>';
-    }
-    if (videoUpload) videoUpload.addEventListener('change', e => { const files = Array.from(e.target.files || []); if (files.length) videoLibrary.innerHTML = files.map(f => makeVideoCard(f)).join(''); });
-    if (shortUpload) shortUpload.addEventListener('change', e => { const files = Array.from(e.target.files || []); if (files.length) shortsGrid.innerHTML = files.map(f => makeShortCard(f)).join(''); });
-    if (photoUpload) photoUpload.addEventListener('change', e => { const files = Array.from(e.target.files || []); if (files.length) photoGallery.innerHTML = files.map(f => makePhotoCard(f)).join(''); });
+    /* ── File uploads ──────────────────────────────────── */
+    function makeVideoCard(file){const url=URL.createObjectURL(file);return'<article class="media-item"><video controls src="'+url+'"></video><div class="media-meta"><strong>'+esc(file.name)+'</strong><div class="muted">'+(Math.round(file.size/1024/1024*10)/10)+' MB</div></div></article>'}
+    function makePhotoCard(file){const url=URL.createObjectURL(file);return'<article class="photo-item"><img src="'+url+'" alt="Photo"><div class="media-meta"><strong>'+esc(file.name)+'</strong></div></article>'}
+    function makeShortCard(file){const url=URL.createObjectURL(file);return'<article class="short-item"><video controls playsinline src="'+url+'"></video><div class="short-meta"><strong>'+esc(file.name)+'</strong><div class="muted">'+(Math.round(file.size/1024/1024*10)/10)+' MB</div></div></article>'}
+    if(videoUpload)videoUpload.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(files.length)videoLibrary.innerHTML=files.map(f=>makeVideoCard(f)).join('')});
+    if(shortUpload)shortUpload.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(files.length)shortsGrid.innerHTML=files.map(f=>makeShortCard(f)).join('')});
+    if(photoUpload)photoUpload.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(files.length)photoGallery.innerHTML=files.map(f=>makePhotoCard(f)).join('')});
 
-    /* ── Global click delegation ──────────────────────── */
-    document.addEventListener('click', async e => {
-      const routeBtn = e.target.closest('[data-route]');
-      if (routeBtn) return setRoute(routeBtn.getAttribute('data-route'));
-      const deleteComment = e.target.closest('[data-delete-comment]');
-      if (deleteComment) {
-        const id = deleteComment.getAttribute('data-delete-comment');
-        const ch = deleteComment.getAttribute('data-channel');
-        try { await apiFetch('/comments/' + ch + '/' + id, { method: 'DELETE' }); loadComments(ch); } catch (err) { alert(err.message); }
-        return;
-      }
-      const deleteJournal = e.target.closest('[data-delete-journal]');
-      if (deleteJournal) {
-        const id = deleteJournal.getAttribute('data-delete-journal');
-        try { await apiFetch('/journal/' + id, { method: 'DELETE' }); loadJournal(); } catch (err) { alert(err.message); }
-        return;
-      }
-      const clearBtn = e.target.closest('[data-clear-comments]');
-      if (clearBtn) {
-        const ch = clearBtn.getAttribute('data-clear-comments');
-        try { await apiFetch('/comments/' + ch, { method: 'DELETE' }); loadComments(ch); } catch (_) {}
-        return;
-      }
-      const camStart = e.target.closest('[data-camera-start]');
-      if (camStart) return startCamera(camStart.getAttribute('data-camera-start'));
-      const camStop = e.target.closest('[data-camera-stop]');
-      if (camStop) return stopCamera(camStop.getAttribute('data-camera-stop'));
-      const goLiveBtn = e.target.closest('[data-go-live]');
-      if (goLiveBtn) return goLive(goLiveBtn.getAttribute('data-go-live'));
-      const stopLiveBtn = e.target.closest('[data-stop-live]');
-      if (stopLiveBtn) return stopLive(stopLiveBtn.getAttribute('data-stop-live'));
+    /* ── Click delegation ──────────────────────────────── */
+    document.addEventListener('click',async e=>{
+      const routeBtn=e.target.closest('[data-route]');if(routeBtn)return setRoute(routeBtn.getAttribute('data-route'));
+      const dc=e.target.closest('[data-delete-comment]');
+      if(dc){try{await apiFetch('/comments/'+dc.getAttribute('data-channel')+'/'+dc.getAttribute('data-delete-comment'),{method:'DELETE'});loadComments(dc.getAttribute('data-channel'))}catch(err){alert(err.message)}return}
+      const dj=e.target.closest('[data-delete-journal]');
+      if(dj){try{await apiFetch('/journal/'+dj.getAttribute('data-delete-journal'),{method:'DELETE'});loadJournal()}catch(err){alert(err.message)}return}
+      const cb=e.target.closest('[data-clear-comments]');
+      if(cb){try{await apiFetch('/comments/'+cb.getAttribute('data-clear-comments'),{method:'DELETE'});loadComments(cb.getAttribute('data-clear-comments'))}catch(_){}return}
+      const cs=e.target.closest('[data-camera-start]');if(cs)return startCamera(cs.getAttribute('data-camera-start'));
+      const cx=e.target.closest('[data-camera-stop]');if(cx)return stopCamera(cx.getAttribute('data-camera-stop'));
+      const gl=e.target.closest('[data-go-live]');if(gl)return goLive(gl.getAttribute('data-go-live'));
+      const sl=e.target.closest('[data-stop-live]');if(sl)return stopLive(sl.getAttribute('data-stop-live'));
     });
 
-    /* ── Load all data ────────────────────────────────── */
-    function loadAllData() {
-      loadJournal();
-      CHANNELS.forEach(ch => { loadComments(ch); connectWs(ch); });
-      checkAllStreams();
-    }
-
-    /* ── Init ─────────────────────────────────────────── */
-    if (journalDate) journalDate.valueAsDate = new Date();
-    renderEmpty(videoLibrary, 'No videos uploaded yet.');
-    renderEmpty(shortsGrid, 'No Shorts uploaded yet.');
-    renderEmpty(photoGallery, 'No photos uploaded yet.');
-    syncAuthUI();
-    handleHashRoute();
-    loadAllData();
-    // Poll stream status every 15 seconds
-    setInterval(checkAllStreams, 15000);
+    /* ── Init ──────────────────────────────────────────── */
+    function loadAllData(){loadJournal();CHANNELS.forEach(ch=>{loadComments(ch);connectWs(ch)});checkAllStreams()}
+    if(journalDate)journalDate.valueAsDate=new Date();
+    renderEmpty(videoLibrary,'No videos uploaded yet.');
+    renderEmpty(shortsGrid,'No Shorts uploaded yet.');
+    renderEmpty(photoGallery,'No photos uploaded yet.');
+    syncAuthUI();handleHashRoute();loadAllData();
+    setInterval(checkAllStreams,15000);
   })();
   </script>
 </body>
