@@ -82,6 +82,17 @@
     .preview{aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(255,111,182,.22),rgba(110,183,255,.18));border:1px solid rgba(255,255,255,.1);position:relative;display:grid;place-items:center}
     .preview video{width:100%;height:100%;object-fit:cover;background:#060b16}
     .preview-placeholder{text-align:center;padding:20px;color:#fff}
+    .viewer-controls{position:absolute;bottom:14px;left:14px;right:14px;z-index:3;display:none;gap:8px;justify-content:center}
+    .viewer-controls.show{display:flex}
+    .viewer-controls button{padding:10px 16px;border-radius:14px;border:none;font-weight:800;cursor:pointer;font-size:.92rem;backdrop-filter:blur(8px)}
+    .vc-unmute{background:rgba(255,58,58,.9);color:#fff}
+    .vc-expand{background:rgba(110,183,255,.9);color:#fff}
+    .vc-popout{background:rgba(155,124,255,.9);color:#fff}
+    .stream-fullscreen{position:fixed;inset:0;z-index:300;background:#000;display:none;align-items:center;justify-content:center}
+    .stream-fullscreen.show{display:flex}
+    .stream-fullscreen video{width:100%;height:100%;object-fit:contain}
+    .stream-fullscreen .fs-close{position:absolute;top:20px;right:20px;z-index:301;padding:12px 20px;border-radius:14px;background:rgba(255,255,255,.15);border:none;color:#fff;font-weight:800;cursor:pointer;font-size:1rem;backdrop-filter:blur(8px)}
+    .stream-fullscreen .fs-unmute{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:301;padding:12px 20px;border-radius:14px;background:rgba(255,58,58,.9);border:none;color:#fff;font-weight:800;cursor:pointer;font-size:1rem}
     .live-badge{position:absolute;left:14px;top:14px;background:rgba(255,58,58,.92);display:none;z-index:2}
     .live-badge.show{display:inline-flex}
     .scene-pill{position:absolute;right:14px;top:14px;background:rgba(7,12,25,.72);z-index:2}
@@ -217,7 +228,8 @@
             <span class="live-badge" data-live-badge="studio-keralee">LIVE</span>
             <span class="scene-pill">Keralee Solo View</span>
             <video autoplay muted playsinline data-camera-preview="studio-keralee" class="host-only"></video>
-            <video autoplay playsinline data-viewer-video="studio-keralee" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <video autoplay muted playsinline data-viewer-video="studio-keralee" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <div class="viewer-controls" data-viewer-controls="studio-keralee"><button class="vc-unmute" type="button" data-unmute="studio-keralee">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-keralee">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-keralee">↗ Pop Out</button></div>
             <div class="preview-placeholder" data-camera-placeholder="studio-keralee"><h3 style="margin-bottom:10px;">Keralee's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Keralee goes live.</p></div>
           </div>
           <div class="action-row host-only" style="margin-top:14px;">
@@ -258,7 +270,8 @@
             <span class="live-badge" data-live-badge="studio-kayden">LIVE</span>
             <span class="scene-pill">Kayden Solo View</span>
             <video autoplay muted playsinline data-camera-preview="studio-kayden" class="host-only"></video>
-            <video autoplay playsinline data-viewer-video="studio-kayden" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <video autoplay muted playsinline data-viewer-video="studio-kayden" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <div class="viewer-controls" data-viewer-controls="studio-kayden"><button class="vc-unmute" type="button" data-unmute="studio-kayden">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-kayden">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-kayden">↗ Pop Out</button></div>
             <div class="preview-placeholder" data-camera-placeholder="studio-kayden"><h3 style="margin-bottom:10px;">Kayden's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Kayden goes live.</p></div>
           </div>
           <div class="action-row host-only" style="margin-top:14px;">
@@ -299,7 +312,8 @@
             <span class="live-badge" data-live-badge="studio-together">LIVE</span>
             <span class="scene-pill">Together Studio Scene</span>
             <video autoplay muted playsinline data-camera-preview="studio-together" class="host-only"></video>
-            <video autoplay playsinline data-viewer-video="studio-together" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <video autoplay muted playsinline data-viewer-video="studio-together" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <div class="viewer-controls" data-viewer-controls="studio-together"><button class="vc-unmute" type="button" data-unmute="studio-together">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-together">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-together">↗ Pop Out</button></div>
             <div class="preview-placeholder" data-camera-placeholder="studio-together"><h3 style="margin-bottom:10px;">Together Studio</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when both hosts go live.</p></div>
           </div>
           <div class="action-row host-only" style="margin-top:14px;">
@@ -390,6 +404,13 @@
   </main>
 
   <footer class="wrap footer">Built for Keralee & Kayden's adventures. Family-safe, moderated, and host-controlled.</footer>
+
+  <!-- FULLSCREEN STREAM VIEWER -->
+  <div id="streamFullscreen" class="stream-fullscreen">
+    <video id="fsVideo" autoplay muted playsinline></video>
+    <button class="fs-close" type="button" id="fsClose">✕ Close</button>
+    <button class="fs-unmute" type="button" id="fsUnmute">🔇 Tap to unmute</button>
+  </div>
 
   <div id="authModal" class="modal" aria-hidden="true">
     <div class="modal-card">
@@ -574,47 +595,54 @@
 
     /* ── WHIP Broadcast (host → Cloudflare) ────────────── */
     async function whipBroadcast(whipUrl, mediaStream){
-      const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});
-      mediaStream.getTracks().forEach(track=>{
-        pc.addTransceiver(track,{direction:'sendonly'});
-      });
-      const offer=await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await new Promise((resolve)=>{
-        const t=setTimeout(resolve,3000);
-        if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
-        else pc.addEventListener('icegatheringstatechange',()=>{
-          if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
-        });
-      });
-      const resp=await fetch(whipUrl,{method:'POST',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
-      if(!resp.ok)throw new Error('WHIP failed: '+resp.status+' '+await resp.text());
-      const answer=await resp.text();
-      await pc.setRemoteDescription({type:'answer',sdp:answer});
+      console.log('[WHIP] Starting broadcast to:', whipUrl);
+      var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
+      var vt=mediaStream.getVideoTracks()[0];
+      var at=mediaStream.getAudioTracks()[0];
+      if(vt)pc.addTransceiver(vt,{direction:'sendonly'});
+      if(at)pc.addTransceiver(at,{direction:'sendonly'});
+      console.log('[WHIP] Tracks - video:',!!vt,'audio:',!!at);
+      await pc.setLocalDescription(await pc.createOffer());
+      await new Promise(function(r){if(pc.iceGatheringState==='complete'){r();return}var d=false;var t=setTimeout(function(){if(!d){d=true;r()}},5000);pc.addEventListener('icegatheringstatechange',function(){if(!d&&pc.iceGatheringState==='complete'){d=true;clearTimeout(t);r()}})});
+      console.log('[WHIP] Sending offer, SDP length:',pc.localDescription.sdp.length);
+      var resp=await fetch(whipUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
+      if(!resp.ok){var et=await resp.text();console.error('[WHIP] Error:',resp.status,et);throw new Error('WHIP:'+resp.status)}
+      var ans=await resp.text();
+      console.log('[WHIP] Got answer, length:',ans.length);
+      await pc.setRemoteDescription({type:'answer',sdp:ans});
+      pc.onconnectionstatechange=function(){console.log('[WHIP] State:',pc.connectionState)};
+      pc.oniceconnectionstatechange=function(){console.log('[WHIP] ICE:',pc.iceConnectionState)};
+      console.log('[WHIP] Connected, state:',pc.connectionState,'ice:',pc.iceConnectionState);
       return pc;
     }
 
-    /* ── WHEP Playback (viewer ← Cloudflare) ───────────── */
-    async function whepPlayback(whepUrl,videoEl){
+    /* ── WHEP Playback (viewer ← Cloudflare) with retry ── */
+    async function whepPlayback(whepUrl,videoEl,retries){
+      retries=retries||0;
+      console.log('[WHEP] Connecting attempt',retries+1,'to:',whepUrl);
       if(viewerPCs[whepUrl]){try{viewerPCs[whepUrl].close()}catch(_){}}
-      const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});
+      var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
       pc.addTransceiver('video',{direction:'recvonly'});
       pc.addTransceiver('audio',{direction:'recvonly'});
-      pc.ontrack=event=>{if(event.streams&&event.streams[0])videoEl.srcObject=event.streams[0]};
-      const offer=await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await new Promise((resolve)=>{
-        const t=setTimeout(resolve,3000);
-        if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
-        else pc.addEventListener('icegatheringstatechange',()=>{
-          if(pc.iceGatheringState==='complete'){clearTimeout(t);resolve()}
-        });
-      });
-      const resp=await fetch(whepUrl,{method:'POST',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
-      if(!resp.ok)throw new Error('WHEP failed: '+resp.status);
-      const answer=await resp.text();
-      await pc.setRemoteDescription({type:'answer',sdp:answer});
-      viewerPCs[whepUrl]=pc;
+      pc.ontrack=function(event){
+        console.log('[WHEP] Got track:',event.track.kind);
+        if(event.streams&&event.streams[0]){videoEl.srcObject=event.streams[0];videoEl.play().catch(function(e){console.log('[WHEP] play() blocked:',e.message)})}
+      };
+      pc.onconnectionstatechange=function(){console.log('[WHEP] State:',pc.connectionState)};
+      await pc.setLocalDescription(await pc.createOffer());
+      await new Promise(function(r){if(pc.iceGatheringState==='complete'){r();return}var d=false;var t=setTimeout(function(){if(!d){d=true;r()}},5000);pc.addEventListener('icegatheringstatechange',function(){if(!d&&pc.iceGatheringState==='complete'){d=true;clearTimeout(t);r()}})});
+      try{
+        var resp=await fetch(whepUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
+        if(!resp.ok){var et=await resp.text();console.error('[WHEP] Error:',resp.status,et);throw new Error('WHEP:'+resp.status)}
+        var ans=await resp.text();
+        console.log('[WHEP] Got answer, length:',ans.length);
+        await pc.setRemoteDescription({type:'answer',sdp:ans});
+        viewerPCs[whepUrl]=pc;
+        if(retries<3){setTimeout(function(){if(videoEl.srcObject&&videoEl.videoWidth===0){console.log('[WHEP] Black screen detected, retrying...');whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})}},5000)}
+      }catch(err){
+        console.warn('[WHEP] Failed:',err);pc.close();
+        if(retries<3){setTimeout(function(){whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})},3000)}
+      }
       return pc;
     }
 
@@ -637,10 +665,10 @@
       const viewerVideo=document.querySelector('[data-viewer-video="'+channel+'"]');
       const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
       if(isLive&&whepUrl&&authRole!=='host'){
-        if(viewerVideo){viewerVideo.style.display='block';whepPlayback(whepUrl,viewerVideo).catch(e=>console.warn('WHEP error:',e))}
+        if(viewerVideo){viewerVideo.style.display='block';var vc=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc)vc.classList.add('show');whepPlayback(whepUrl,viewerVideo).catch(function(e){console.warn('WHEP error:',e)})}
         if(placeholder)placeholder.style.display='none';
       }else if(!isLive&&authRole!=='host'){
-        if(viewerVideo){viewerVideo.style.display='none';viewerVideo.srcObject=null}
+        if(viewerVideo){viewerVideo.style.display='none';viewerVideo.srcObject=null;var vc2=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc2)vc2.classList.remove('show')}
         if(placeholder)placeholder.style.display='grid';
       }
     }
@@ -736,11 +764,56 @@
       if(dj){try{await apiFetch('/journal/'+dj.getAttribute('data-delete-journal'),{method:'DELETE'});loadJournal()}catch(err){alert(err.message)}return}
       const cb=e.target.closest('[data-clear-comments]');
       if(cb){try{await apiFetch('/comments/'+cb.getAttribute('data-clear-comments'),{method:'DELETE'});loadComments(cb.getAttribute('data-clear-comments'))}catch(_){}return}
+      const um=e.target.closest('[data-unmute]');if(um){var ch=um.getAttribute('data-unmute');var vv=document.querySelector('[data-viewer-video="'+ch+'"]');if(vv){vv.muted=false}um.textContent='🔊 Sound on';return}
+      const ex=e.target.closest('[data-expand]');if(ex){var ech=ex.getAttribute('data-expand');expandStream(ech);return}
+      const po=e.target.closest('[data-popout-stream]');if(po){var pch=po.getAttribute('data-popout-stream');popoutStream(pch);return}
       const cs=e.target.closest('[data-camera-start]');if(cs)return startCamera(cs.getAttribute('data-camera-start'));
       const cx=e.target.closest('[data-camera-stop]');if(cx)return stopCamera(cx.getAttribute('data-camera-stop'));
       const gl=e.target.closest('[data-go-live]');if(gl)return goLive(gl.getAttribute('data-go-live'));
       const sl=e.target.closest('[data-stop-live]');if(sl)return stopLive(sl.getAttribute('data-stop-live'));
     });
+
+    /* ── Fullscreen & Pop-out viewer ──────────────────── */
+    var currentFsChannel=null;
+    var fsOverlay=document.getElementById('streamFullscreen');
+    var fsVideo=document.getElementById('fsVideo');
+    var fsClose=document.getElementById('fsClose');
+    var fsUnmute=document.getElementById('fsUnmute');
+
+    function expandStream(channel){
+      var src=document.querySelector('[data-viewer-video="'+channel+'"]');
+      if(!src||!src.srcObject)return;
+      fsVideo.srcObject=src.srcObject;
+      fsVideo.muted=true;
+      fsVideo.play().catch(function(){});
+      fsOverlay.classList.add('show');
+      fsUnmute.textContent='🔇 Tap to unmute';
+      currentFsChannel=channel;
+    }
+    fsClose.addEventListener('click',function(){
+      fsOverlay.classList.remove('show');
+      fsVideo.srcObject=null;
+      currentFsChannel=null;
+    });
+    fsUnmute.addEventListener('click',function(){
+      fsVideo.muted=!fsVideo.muted;
+      fsUnmute.textContent=fsVideo.muted?'🔇 Tap to unmute':'🔊 Sound on';
+    });
+
+    function popoutStream(channel){
+      var src=document.querySelector('[data-viewer-video="'+channel+'"]');
+      if(!src||!src.srcObject)return;
+      var w=window.open('','_blank','width=960,height=540,noopener');
+      if(!w)return;
+      w.document.title='Live: '+channel.replace('studio-','');
+      w.document.body.style.cssText='margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh';
+      var v=w.document.createElement('video');
+      v.style.cssText='width:100%;height:100%;object-fit:contain';
+      v.autoplay=true;v.muted=false;v.playsInline=true;
+      v.srcObject=src.srcObject;
+      w.document.body.appendChild(v);
+      v.play().catch(function(){v.muted=true;v.play()});
+    }
 
     /* ── Init ──────────────────────────────────────────── */
     function loadAllData(){loadJournal();CHANNELS.forEach(ch=>{loadComments(ch);connectWs(ch)});checkAllStreams()}
