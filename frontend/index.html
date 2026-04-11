@@ -631,8 +631,8 @@
     async function whepPlayback(whepUrl,videoEl,retries){
       retries=retries||0;
       console.log('[WHEP] Connecting attempt',retries+1,'to:',whepUrl);
-      if(viewerPCs[whepUrl]){try{viewerPCs[whepUrl].close()}catch(_){}}
-      viewerPCs[whepUrl]=pc; // Set early to prevent duplicate connections from poll
+      if(viewerPCs[whepUrl]&&viewerPCs[whepUrl]!=='connecting'&&viewerPCs[whepUrl]!=='retrying'&&typeof viewerPCs[whepUrl].close==='function'){try{viewerPCs[whepUrl].close()}catch(_){}}
+      viewerPCs[whepUrl]='connecting';
       var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
       pc.addTransceiver('video',{direction:'recvonly'});
       pc.addTransceiver('audio',{direction:'recvonly'});
@@ -651,7 +651,12 @@
       };
       videoEl.onloadedmetadata=function(){console.log('[WHEP] METADATA:',videoEl.videoWidth+'x'+videoEl.videoHeight)};
       videoEl.onplaying=function(){console.log('[WHEP] PLAYING:',videoEl.videoWidth+'x'+videoEl.videoHeight,' readyState:',videoEl.readyState)};
-      pc.onconnectionstatechange=function(){console.log('[WHEP] State:',pc.connectionState)};
+      pc.onconnectionstatechange=function(){
+        console.log('[WHEP] State:',pc.connectionState);
+        if(pc.connectionState==='failed'||pc.connectionState==='disconnected'){
+          console.log('[WHEP] Connection lost, will recover on next poll cycle');
+        }
+      };
       await pc.setLocalDescription(await pc.createOffer());
       await new Promise(function(r){if(pc.iceGatheringState==='complete'){r();return}var d=false;var t=setTimeout(function(){if(!d){d=true;r()}},5000);pc.addEventListener('icegatheringstatechange',function(){if(!d&&pc.iceGatheringState==='complete'){d=true;clearTimeout(t);r()}})});
       try{
@@ -666,9 +671,9 @@
         console.log('[WHEP] Got answer, length:',ans.length);
         await pc.setRemoteDescription({type:'answer',sdp:ans});
         viewerPCs[whepUrl]=pc;
-        if(retries<2){setTimeout(function(){if(videoEl.srcObject&&videoEl.videoWidth===0){console.log('[WHEP] Black screen detected after 8s, retrying...');delete viewerPCs[whepUrl];whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})}},8000)}
+        if(retries<2){setTimeout(function(){if(videoEl.srcObject&&videoEl.videoWidth===0){console.log('[WHEP] Black screen detected after 8s, retrying...');if(viewerPCs[whepUrl]===pc){pc.close();delete viewerPCs[whepUrl]}whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})}},8000)}
       }catch(err){
-        console.warn('[WHEP] Failed:',err);pc.close();
+        console.warn('[WHEP] Failed:',err);pc.close();delete viewerPCs[whepUrl];
         if(retries<3){setTimeout(function(){whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})},3000)}
       }
       return pc;
