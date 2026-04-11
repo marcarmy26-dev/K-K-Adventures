@@ -237,6 +237,9 @@
             <button class="btn btn-danger" type="button" data-camera-stop="studio-keralee">Turn Off Camera</button>
             <button class="btn btn-secondary" type="button" data-go-live="studio-keralee">Go Live</button>
             <button class="btn btn-danger hidden" type="button" data-stop-live="studio-keralee">Stop Stream</button>
+            <button class="btn btn-ghost" type="button" data-host-mute="studio-keralee">🔇 Mute</button>
+            <button class="btn btn-ghost" type="button" data-expand="studio-keralee">⛶ Expand</button>
+            <button class="btn btn-ghost" type="button" data-popout-stream="studio-keralee">↗ Pop Out</button>
           </div>
           <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
@@ -279,6 +282,9 @@
             <button class="btn btn-danger" type="button" data-camera-stop="studio-kayden">Turn Off Camera</button>
             <button class="btn btn-secondary" type="button" data-go-live="studio-kayden">Go Live</button>
             <button class="btn btn-danger hidden" type="button" data-stop-live="studio-kayden">Stop Stream</button>
+            <button class="btn btn-ghost" type="button" data-host-mute="studio-kayden">🔇 Mute</button>
+            <button class="btn btn-ghost" type="button" data-expand="studio-kayden">⛶ Expand</button>
+            <button class="btn btn-ghost" type="button" data-popout-stream="studio-kayden">↗ Pop Out</button>
           </div>
           <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
@@ -321,6 +327,9 @@
             <button class="btn btn-danger" type="button" data-camera-stop="studio-together">Turn Off Camera</button>
             <button class="btn btn-secondary" type="button" data-go-live="studio-together">Go Live</button>
             <button class="btn btn-danger hidden" type="button" data-stop-live="studio-together">Stop Stream</button>
+            <button class="btn btn-ghost" type="button" data-host-mute="studio-together">🔇 Mute</button>
+            <button class="btn btn-ghost" type="button" data-expand="studio-together">⛶ Expand</button>
+            <button class="btn btn-ghost" type="button" data-popout-stream="studio-together">↗ Pop Out</button>
           </div>
           <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
         </article>
@@ -444,7 +453,7 @@
     const wsConnections={};
     const commentInflight={};
     const commentSnapshots={};
-    const COMMENT_REFRESH_MS=2000;
+    const COMMENT_REFRESH_MS=5000;
 
     const body=document.body;
     const pages=Array.from(document.querySelectorAll('.page'));
@@ -631,8 +640,8 @@
     async function whepPlayback(whepUrl,videoEl,retries){
       retries=retries||0;
       console.log('[WHEP] Connecting attempt',retries+1,'to:',whepUrl);
-      if(viewerPCs[whepUrl]&&viewerPCs[whepUrl]!=='connecting'&&viewerPCs[whepUrl]!=='retrying'&&typeof viewerPCs[whepUrl].close==='function'){try{viewerPCs[whepUrl].close()}catch(_){}}
-      viewerPCs[whepUrl]='connecting';
+      if(viewerPCs[whepUrl]){try{viewerPCs[whepUrl].close()}catch(_){}}
+      viewerPCs[whepUrl]=pc; // Set early to prevent duplicate connections from poll
       var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
       pc.addTransceiver('video',{direction:'recvonly'});
       pc.addTransceiver('audio',{direction:'recvonly'});
@@ -651,12 +660,7 @@
       };
       videoEl.onloadedmetadata=function(){console.log('[WHEP] METADATA:',videoEl.videoWidth+'x'+videoEl.videoHeight)};
       videoEl.onplaying=function(){console.log('[WHEP] PLAYING:',videoEl.videoWidth+'x'+videoEl.videoHeight,' readyState:',videoEl.readyState)};
-      pc.onconnectionstatechange=function(){
-        console.log('[WHEP] State:',pc.connectionState);
-        if(pc.connectionState==='failed'||pc.connectionState==='disconnected'){
-          console.log('[WHEP] Connection lost, will recover on next poll cycle');
-        }
-      };
+      pc.onconnectionstatechange=function(){console.log('[WHEP] State:',pc.connectionState)};
       await pc.setLocalDescription(await pc.createOffer());
       await new Promise(function(r){if(pc.iceGatheringState==='complete'){r();return}var d=false;var t=setTimeout(function(){if(!d){d=true;r()}},5000);pc.addEventListener('icegatheringstatechange',function(){if(!d&&pc.iceGatheringState==='complete'){d=true;clearTimeout(t);r()}})});
       try{
@@ -671,9 +675,9 @@
         console.log('[WHEP] Got answer, length:',ans.length);
         await pc.setRemoteDescription({type:'answer',sdp:ans});
         viewerPCs[whepUrl]=pc;
-        if(retries<2){setTimeout(function(){if(videoEl.srcObject&&videoEl.videoWidth===0){console.log('[WHEP] Black screen detected after 8s, retrying...');if(viewerPCs[whepUrl]===pc){pc.close();delete viewerPCs[whepUrl]}whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})}},8000)}
+        if(retries<2){setTimeout(function(){if(videoEl.srcObject&&videoEl.videoWidth===0){console.log('[WHEP] Black screen detected after 8s, retrying...');delete viewerPCs[whepUrl];whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})}},8000)}
       }catch(err){
-        console.warn('[WHEP] Failed:',err);pc.close();delete viewerPCs[whepUrl];
+        console.warn('[WHEP] Failed:',err);pc.close();
         if(retries<3){setTimeout(function(){whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})},3000)}
       }
       return pc;
@@ -794,19 +798,20 @@
     function connectWs(channel){
       if(wsConnections[channel])return;
       const wsUrl='wss://k-k-adventures-1.onrender.com/ws/comments/'+channel;
+      console.log('[WS] Attempting:',wsUrl);
       try{
         const ws=new WebSocket(wsUrl);
-        ws.onopen=()=>console.log('[WS] Connected:',channel);
+        ws.onopen=()=>{console.log('[WS] Connected:',channel)};
         ws.onmessage=event=>{
           const msg=JSON.parse(event.data);
           if(msg.type==='comment_created'||msg.type==='comment_deleted'||msg.type==='comments_cleared')loadComments(channel,true);
           if(msg.type==='stream_started'){console.log('[WS] Stream started:',channel);updateLiveUI(channel,true,msg.whep_url,true)}
           if(msg.type==='stream_stopped'){console.log('[WS] Stream stopped:',channel);updateLiveUI(channel,false,null,true)}
         };
-        ws.onclose=()=>{delete wsConnections[channel];setTimeout(()=>connectWs(channel),3000)};
-        ws.onerror=(e)=>console.warn('[WS] Error:',channel,e);
+        ws.onclose=(ev)=>{console.warn('[WS] Closed:',channel,'code:',ev.code,'reason:',ev.reason,'clean:',ev.wasClean);delete wsConnections[channel];setTimeout(()=>connectWs(channel),3000)};
+        ws.onerror=(e)=>console.warn('[WS] Error:',channel,'readyState:',ws.readyState);
         wsConnections[channel]=ws;
-      }catch(e){console.warn('[WS] Failed to connect:',channel,e)}
+      }catch(e){console.warn('[WS] Failed to construct:',channel,e)}
     }
 
     /* ── File uploads ──────────────────────────────────── */
@@ -827,6 +832,7 @@
       const cb=e.target.closest('[data-clear-comments]');
       if(cb){try{await apiFetch('/comments/'+cb.getAttribute('data-clear-comments'),{method:'DELETE'});loadComments(cb.getAttribute('data-clear-comments'))}catch(_){}return}
       const um=e.target.closest('[data-unmute]');if(um){var ch=um.getAttribute('data-unmute');var vv=document.querySelector('[data-viewer-video="'+ch+'"]');if(vv){vv.muted=!vv.muted;console.log('[AUDIO] muted=',vv.muted);um.textContent=vv.muted?'🔇 Unmute':'🔊 Sound on'}return}
+      const hm=e.target.closest('[data-host-mute]');if(hm){var hch=hm.getAttribute('data-host-mute');var hv=document.querySelector('[data-camera-preview="'+hch+'"]');if(hv){hv.muted=!hv.muted;hm.textContent=hv.muted?'🔇 Mute':'🔊 Unmute'}return}
       const ex=e.target.closest('[data-expand]');if(ex){var ech=ex.getAttribute('data-expand');expandStream(ech);return}
       const po=e.target.closest('[data-popout-stream]');if(po){var pch=po.getAttribute('data-popout-stream');popoutStream(pch);return}
       const cs=e.target.closest('[data-camera-start]');if(cs)return startCamera(cs.getAttribute('data-camera-start'));
