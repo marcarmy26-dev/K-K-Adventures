@@ -442,6 +442,9 @@
     const cameraState={};
     const viewerPCs={};
     const wsConnections={};
+    const commentInflight={};
+    const commentSnapshots={};
+    const COMMENT_REFRESH_MS=2000;
 
     const body=document.body;
     const pages=Array.from(document.querySelectorAll('.page'));
@@ -534,11 +537,15 @@
     window.addEventListener('hashchange',handleHashRoute);
 
     /* ── Comments ──────────────────────────────────────── */
-    async function loadComments(channel){
+    async function loadComments(channel,force){
       const listNode=document.querySelector('[data-comment-list="'+channel+'"]');
-      if(!listNode)return;
+      if(!listNode||commentInflight[channel])return;
+      commentInflight[channel]=true;
       try{
         const items=await apiFetch('/comments/'+channel);
+        const snapshot=JSON.stringify(items.map(item=>[item.id,item.author,item.message,item.timestamp]));
+        if(!force&&commentSnapshots[channel]===snapshot)return;
+        commentSnapshots[channel]=snapshot;
         if(!items.length){renderEmpty(listNode,'No comments yet. Be the first!');return}
         listNode.innerHTML=items.map(item=>
           '<article class="comment-item"><div class="comment-body">'+
@@ -548,7 +555,11 @@
           (authRole==='host'?'<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-comment="'+item.id+'" data-channel="'+channel+'">Delete</button></div>':'')+
           '</div></article>'
         ).join('');
-      }catch(_){renderEmpty(listNode,'Could not load comments.')}
+      }catch(_){
+        if(!commentSnapshots[channel])renderEmpty(listNode,'Could not load comments.')
+      }finally{
+        commentInflight[channel]=false;
+      }
     }
     document.querySelectorAll('[data-comment-form]').forEach(form=>{
       form.addEventListener('submit',async e=>{
@@ -558,7 +569,7 @@
         const author=form.author.value.trim();const message=form.message.value.trim();
         if(!author||!message)return;
         if(profanityPatterns.some(p=>p.test(message))){feedback.textContent='Comment blocked. Family-safe language required.';return}
-        try{await apiFetch('/comments/'+channel,{method:'POST',body:JSON.stringify({author,message})});form.reset();feedback.textContent='Comment posted!';loadComments(channel)}
+        try{await apiFetch('/comments/'+channel,{method:'POST',body:JSON.stringify({author,message})});form.reset();feedback.textContent='Comment posted!';loadComments(channel,true)}
         catch(err){feedback.textContent=err.message}
       });
     });
@@ -671,7 +682,7 @@
       }catch(_){}
     }
 
-    function updateLiveUI(channel,isLive,whepUrl){
+    function updateLiveUI(channel,isLive,whepUrl,force){
       document.querySelectorAll('[data-live-status="'+channel+'"]').forEach(el=>{
         el.textContent=isLive?'🔴 LIVE':'Offline';
         el.style.background=isLive?'rgba(255,58,58,.2)':'';
@@ -682,10 +693,38 @@
       const viewerVideo=document.querySelector('[data-viewer-video="'+channel+'"]');
       const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
       if(isLive&&whepUrl&&authRole!=='host'){
-        if(viewerVideo){viewerVideo.style.display='block';var vc=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc)vc.classList.add('show');if(!viewerPCs[whepUrl]){whepPlayback(whepUrl,viewerVideo).catch(function(e){console.warn('WHEP error:',e)})}}
+        if(viewerVideo){
+          viewerVideo.style.display='block';
+          var vc=document.querySelector('[data-viewer-controls="'+channel+'"]');
+          if(vc)vc.classList.add('show');
+          var existingPc=viewerPCs[whepUrl];
+          var isSentinel=existingPc==='connecting'||existingPc==='retrying';
+          var streamDead=!viewerVideo.srcObject||!viewerVideo.srcObject.active;
+          var pcEstablished=existingPc&&!isSentinel&&typeof existingPc.connectionState==='string'&&
+                            existingPc.connectionState!=='new'&&existingPc.connectionState!=='connecting';
+          var pcDead=pcEstablished&&(existingPc.connectionState==='failed'||existingPc.connectionState==='closed'||existingPc.connectionState==='disconnected');
+          var streamDeadWithRealPc=streamDead&&pcEstablished&&!pcDead;
+          if(!existingPc||pcDead||streamDeadWithRealPc){
+            if(existingPc&&!isSentinel&&typeof existingPc.close==='function'){try{existingPc.close()}catch(_){}}
+            delete viewerPCs[whepUrl];
+            viewerPCs[whepUrl]='connecting';
+            whepPlayback(whepUrl,viewerVideo).catch(function(e){console.warn('WHEP error:',e);delete viewerPCs[whepUrl]});
+          }
+        }
         if(placeholder)placeholder.style.display='none';
       }else if(!isLive&&authRole!=='host'){
-        if(viewerVideo){viewerVideo.style.display='none';viewerVideo.srcObject=null;var vc2=document.querySelector('[data-viewer-controls="'+channel+'"]');if(vc2)vc2.classList.remove('show')}
+        if(viewerVideo){
+          if(!force&&viewerVideo.srcObject&&viewerVideo.srcObject.active){return}
+          Object.keys(viewerPCs).forEach(function(url){
+            var p=viewerPCs[url];
+            if(p&&p!=='connecting'&&p!=='retrying'&&typeof p.close==='function'){try{p.close()}catch(_){}}
+            delete viewerPCs[url];
+          });
+          viewerVideo.style.display='none';
+          viewerVideo.srcObject=null;
+          var vc2=document.querySelector('[data-viewer-controls="'+channel+'"]');
+          if(vc2)vc2.classList.remove('show');
+        }
         if(placeholder)placeholder.style.display='grid';
       }
     }
@@ -749,19 +788,20 @@
     /* ── WebSocket ─────────────────────────────────────── */
     function connectWs(channel){
       if(wsConnections[channel])return;
-      const proto=location.protocol==='https:'?'wss:':'ws:';
-      const wsUrl=proto+'//'+((location.hostname==='localhost'||location.hostname==='127.0.0.1')?location.host:'k-k-adventures-1.onrender.com')+'/ws/comments/'+channel;
+      const wsUrl='wss://k-k-adventures-1.onrender.com/ws/comments/'+channel;
       try{
         const ws=new WebSocket(wsUrl);
+        ws.onopen=()=>console.log('[WS] Connected:',channel);
         ws.onmessage=event=>{
           const msg=JSON.parse(event.data);
-          if(msg.type==='comment_created'||msg.type==='comment_deleted'||msg.type==='comments_cleared')loadComments(channel);
-          if(msg.type==='stream_started')updateLiveUI(channel,true,msg.whep_url);
-          if(msg.type==='stream_stopped')updateLiveUI(channel,false,null);
+          if(msg.type==='comment_created'||msg.type==='comment_deleted'||msg.type==='comments_cleared')loadComments(channel,true);
+          if(msg.type==='stream_started'){console.log('[WS] Stream started:',channel);updateLiveUI(channel,true,msg.whep_url,true)}
+          if(msg.type==='stream_stopped'){console.log('[WS] Stream stopped:',channel);updateLiveUI(channel,false,null,true)}
         };
-        ws.onclose=()=>{delete wsConnections[channel];setTimeout(()=>connectWs(channel),5000)};
+        ws.onclose=()=>{delete wsConnections[channel];setTimeout(()=>connectWs(channel),3000)};
+        ws.onerror=(e)=>console.warn('[WS] Error:',channel,e);
         wsConnections[channel]=ws;
-      }catch(_){}
+      }catch(e){console.warn('[WS] Failed to connect:',channel,e)}
     }
 
     /* ── File uploads ──────────────────────────────────── */
@@ -835,13 +875,14 @@
     }
 
     /* ── Init ──────────────────────────────────────────── */
-    function loadAllData(){loadJournal();CHANNELS.forEach(ch=>{loadComments(ch);connectWs(ch)});checkAllStreams()}
+    function loadAllData(){loadJournal();CHANNELS.forEach(ch=>{loadComments(ch,true);connectWs(ch)});checkAllStreams()}
     if(journalDate)journalDate.valueAsDate=new Date();
     renderEmpty(videoLibrary,'No videos uploaded yet.');
     renderEmpty(shortsGrid,'No Shorts uploaded yet.');
     renderEmpty(photoGallery,'No photos uploaded yet.');
     syncAuthUI();handleHashRoute();loadAllData();
     setInterval(checkAllStreams,15000);
+    setInterval(()=>CHANNELS.forEach(ch=>loadComments(ch)),COMMENT_REFRESH_MS);
   })();
   </script>
 </body>
