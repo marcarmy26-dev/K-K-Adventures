@@ -411,7 +411,7 @@ def get_stream_status(channel: str, db: Session = Depends(get_db)):
 
 @app.post("/api/streams/{channel}/start")
 async def start_stream(channel: str, user: dict = Depends(require_host), db: Session = Depends(get_db)):
-    """Host only: start streaming. Reuses existing Cloudflare live input or creates one."""
+    """Host only: start streaming. Always provisions a fresh Cloudflare live input."""
     if channel not in CHANNELS:
         raise HTTPException(status_code=404, detail="Unknown channel")
     if not CF_ACCOUNT_ID or not CF_API_TOKEN:
@@ -419,21 +419,19 @@ async def start_stream(channel: str, user: dict = Depends(require_host), db: Ses
 
     row = db.query(StreamRow).filter(StreamRow.channel == channel).first()
 
-    # Reuse existing live input if we have one with valid URLs
-    if row and row.cf_input_uid and row.cf_whip_url and row.cf_whep_url:
-        row.is_live = True
+    # Always create a fresh live input so stale WHIP/WHEP sessions do not get reused.
+    if row and row.cf_input_uid:
+        try:
+            await cf_delete_live_input(row.cf_input_uid)
+        except Exception:
+            pass
+        row.cf_input_uid = None
+        row.cf_whip_url = None
+        row.cf_whep_url = None
+        row.is_live = False
         row.updated_at = datetime.now(timezone.utc)
         db.commit()
-        db.refresh(row)
-        await broadcast(channel, {"type": "stream_started", "channel": channel, "whep_url": row.cf_whep_url})
-        return {
-            "ok": True,
-            "channel": channel,
-            "whip_url": row.cf_whip_url,
-            "whep_url": row.cf_whep_url,
-        }
 
-    # No existing input — create a fresh one
     result = await cf_create_live_input(channel)
     whip_url = result.get("webRTC", {}).get("url", "")
     whep_url = result.get("webRTCPlayback", {}).get("url", "")
@@ -462,13 +460,20 @@ async def start_stream(channel: str, user: dict = Depends(require_host), db: Ses
 
 @app.post("/api/streams/{channel}/stop")
 async def stop_stream(channel: str, user: dict = Depends(require_host), db: Session = Depends(get_db)):
-    """Host only: end the live stream. Keeps the live input for reuse."""
+    """Host only: end the live stream and clear the current Cloudflare input."""
     if channel not in CHANNELS:
         raise HTTPException(status_code=404, detail="Unknown channel")
     row = db.query(StreamRow).filter(StreamRow.channel == channel).first()
     if not row:
         return {"ok": True, "detail": "No stream found"}
-    # Don't delete the Cloudflare input — just mark offline for reuse next time
+    if row.cf_input_uid:
+        try:
+            await cf_delete_live_input(row.cf_input_uid)
+        except Exception:
+            pass
+    row.cf_input_uid = None
+    row.cf_whip_url = None
+    row.cf_whep_url = None
     row.is_live = False
     row.updated_at = datetime.now(timezone.utc)
     db.commit()
