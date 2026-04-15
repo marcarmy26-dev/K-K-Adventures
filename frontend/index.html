@@ -1,1524 +1,992 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>NexusPay Intelligence — Lead Command Center</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --void:#04060a;--bg:#070a0f;--s1:#0c1018;--s2:#111620;--s3:#161d28;--s4:#1c2433;
-  --b0:rgba(255,255,255,.03);--b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);--b3:rgba(255,255,255,.20);
-  --t1:#e8eaf0;--t2:#9aa0b0;--t3:#5a6070;--t4:#363d4a;
-  --lime:#b8f040;--lime2:#8bc820;--green:#20d980;--teal:#00c8a0;--cyan:#20d0f0;
-  --up:#20c060;--dn:#e04050;--warn:#e09020;--info:#4090f0;--purple:#9060f0;--gold:#d0a020;
-  --mono:'DM Mono',monospace;--sans:'Inter',sans-serif;
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-}
-html,body{height:100%;background:var(--void);color:var(--t1);font-family:var(--sans);font-size:12px;-webkit-font-smoothing:antialiased;overflow:hidden}
-a{color:inherit}
-
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-
-.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-
-/* ════════════════════════════════════════════════════
-   TOPBAR
-   ════════════════════════════════════════════════════ */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;background:var(--s1);border-bottom:1px solid var(--b2);flex-shrink:0;gap:8px}
-.tb-left{display:flex;align-items:center;gap:10px;min-width:0}
-.logo-mark{width:28px;height:28px;background:var(--lime);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-mark svg{width:14px;height:14px}
-.logo-text{font-size:13px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.logo-sub{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:.08em}
-.tb-stats{display:flex;align-items:center;gap:8px}
-.stat-chip{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--t2);background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:4px 8px;white-space:nowrap}
-.stat-chip .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.stat-chip .dot.live{background:var(--green);animation:pulse 2s infinite}
-.stat-chip strong{color:var(--t1);font-weight:600}
-.tb-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.tb-btn{font-family:var(--mono);font-size:9px;font-weight:600;padding:6px 10px;border-radius:4px;border:1px solid var(--b2);background:var(--s3);color:var(--t2);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:4px;white-space:nowrap;min-height:32px}
-.tb-btn:hover{background:var(--s4);color:var(--t1);border-color:var(--b3)}
-.tb-btn.lime{background:var(--lime);color:var(--void);border-color:var(--lime)}
-.tb-btn.lime:hover{background:#c8f050}
-.tb-btn.red{border-color:rgba(224,64,80,.3);color:var(--dn)}
-.tb-btn.red:hover{background:rgba(224,64,80,.1)}
-
-/* ════════════════════════════════════════════════════
-   TAB BAR
-   ════════════════════════════════════════════════════ */
-.tab-bar{display:flex;align-items:center;gap:0;padding:0 16px;background:var(--s1);border-bottom:1px solid var(--b2);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.tab-bar::-webkit-scrollbar{display:none}
-.tab-item{font-family:var(--mono);font-size:10px;font-weight:600;padding:10px 16px;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;user-select:none;-webkit-tap-highlight-color:transparent}
-.tab-item:hover{color:var(--t2)}
-.tab-item.active{color:var(--lime);border-bottom-color:var(--lime)}
-.tab-count{font-size:8px;padding:2px 6px;border-radius:3px;background:var(--s3);color:var(--t3);font-weight:500;min-width:18px;text-align:center}
-.tab-item.active .tab-count{background:rgba(184,240,64,.12);color:var(--lime)}
-
-/* ════════════════════════════════════════════════════
-   TOOLBAR — search + filters
-   ════════════════════════════════════════════════════ */
-.toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0;flex-wrap:wrap}
-.search-box{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:0 10px;flex:1;min-width:180px;transition:border-color .15s}
-.search-box:focus-within{border-color:var(--lime)}
-.search-box svg{width:14px;height:14px;color:var(--t3);flex-shrink:0}
-.search-box input{background:none;border:none;color:var(--t1);font-family:var(--mono);font-size:11px;padding:8px 0;width:100%;outline:none;min-height:36px}
-.search-box input::placeholder{color:var(--t4)}
-.filters-row{display:flex;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}
-.filters-row::-webkit-scrollbar{display:none}
-.filter-chip{font-family:var(--mono);font-size:9px;padding:6px 10px;border-radius:3px;border:1px solid var(--b1);background:var(--s2);color:var(--t3);cursor:pointer;transition:all .12s;white-space:nowrap;min-height:32px;display:flex;align-items:center}
-.filter-chip:hover{color:var(--t2);border-color:var(--b2)}
-.filter-chip.on{color:var(--lime);border-color:rgba(184,240,64,.3);background:rgba(184,240,64,.06)}
-
-/* ════════════════════════════════════════════════════
-   BULK BAR
-   ════════════════════════════════════════════════════ */
-.bulk-bar{display:none;align-items:center;gap:8px;padding:8px 16px;background:rgba(184,240,64,.04);border-bottom:1px solid rgba(184,240,64,.15);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.bulk-bar.on{display:flex}
-.bulk-count{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--lime);white-space:nowrap}
-.bulk-sep{width:1px;height:18px;background:var(--b2);flex-shrink:0}
-
-/* ════════════════════════════════════════════════════
-   MAIN SCROLL AREA
-   ════════════════════════════════════════════════════ */
-.main-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-
-/* ════════════════════════════════════════════════════
-   DESKTOP TABLE
-   ════════════════════════════════════════════════════ */
-.table-view{display:block}
-.table-view table{width:100%;border-collapse:collapse;font-size:11px}
-.table-view thead{position:sticky;top:0;z-index:5}
-.table-view th{background:var(--s1);border-bottom:2px solid var(--b2);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;cursor:pointer;user-select:none;transition:color .12s}
-.table-view th:hover{color:var(--lime)}
-.table-view th.sorted{color:var(--lime)}
-.table-view th .sort-arrow{margin-left:3px;font-size:8px}
-.table-view td{padding:8px 12px;border-bottom:1px solid var(--b1);vertical-align:middle;white-space:nowrap}
-.table-view tr{transition:background .1s}
-.table-view tr:hover{background:rgba(184,240,64,.02)}
-.table-view tr.selected{background:rgba(184,240,64,.05)}
-.cb{accent-color:var(--lime);width:14px;height:14px;cursor:pointer;min-width:14px}
-
-/* ════════════════════════════════════════════════════
-   MOBILE CARD VIEW
-   ════════════════════════════════════════════════════ */
-.card-view{display:none;padding:8px}
-.lead-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:14px;margin-bottom:8px;animation:fadeIn .25s ease;transition:border-color .15s;position:relative}
-.lead-card.selected{border-color:rgba(184,240,64,.3);background:rgba(184,240,64,.03)}
-.lead-card:active{background:var(--s2)}
-.card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
-.card-cb{margin-top:2px;flex-shrink:0}
-.card-info{flex:1;min-width:0}
-.card-name{font-size:14px;font-weight:700;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-biz{font-size:11px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-status{flex-shrink:0}
-.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.card-field{min-width:0}
-.card-label{font-family:var(--mono);font-size:8px;color:var(--t4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
-.card-val{font-size:11px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-val a{color:var(--cyan);text-decoration:none}
-.card-val.phone a{color:var(--t2)}
-.card-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.card-meta{font-family:var(--mono);font-size:9px;color:var(--t4)}
-.card-actions{margin-left:auto;display:flex;gap:6px}
-
-/* ════════════════════════════════════════════════════
-   SHARED CELL STYLES
-   ════════════════════════════════════════════════════ */
-.cell-name{font-weight:600;color:var(--t1);font-size:12px}
-.cell-biz{color:var(--t2);font-size:11px}
-.cell-email{font-family:var(--mono);font-size:10px;color:var(--cyan)}
-.cell-email a{color:var(--cyan);text-decoration:none}
-.cell-phone{font-family:var(--mono);font-size:10px;color:var(--t2)}
-.cell-phone a{color:var(--t2);text-decoration:none}
-.cell-date{font-family:var(--mono);font-size:9px;color:var(--t3)}
-.cell-duration{font-family:var(--mono);font-size:9px;color:var(--t3)}
-.cell-ip{font-family:var(--mono);font-size:9px;color:var(--t4)}
-.cell-source{font-family:var(--mono);font-size:9px}
-
-.status-badge{font-family:var(--mono);font-size:8px;font-weight:600;padding:4px 8px;border-radius:3px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:all .12s;min-height:26px;-webkit-tap-highlight-color:transparent}
-.status-badge:hover,.status-badge:active{filter:brightness(1.2)}
-.st-new{background:rgba(64,144,240,.12);color:var(--info);border:1px solid rgba(64,144,240,.2)}
-.st-contacted{background:rgba(224,144,32,.1);color:var(--warn);border:1px solid rgba(224,144,32,.2)}
-.st-qualified{background:rgba(184,240,64,.1);color:var(--lime);border:1px solid rgba(184,240,64,.2)}
-.st-converted{background:rgba(32,192,96,.1);color:var(--up);border:1px solid rgba(32,192,96,.2)}
-.st-lost{background:rgba(224,64,80,.08);color:var(--dn);border:1px solid rgba(224,64,80,.15)}
-.st-reviewed{background:rgba(144,96,240,.1);color:var(--purple);border:1px solid rgba(144,96,240,.2)}
-.st-interviewed{background:rgba(0,200,160,.1);color:var(--teal);border:1px solid rgba(0,200,160,.2)}
-.st-hired{background:rgba(32,192,96,.1);color:var(--up);border:1px solid rgba(32,192,96,.2)}
-.st-rejected{background:rgba(224,64,80,.08);color:var(--dn);border:1px solid rgba(224,64,80,.15)}
-.st-analyzing{background:rgba(224,144,32,.1);color:var(--warn);border:1px solid rgba(224,144,32,.2)}
-.st-quoted{background:rgba(184,240,64,.1);color:var(--lime);border:1px solid rgba(184,240,64,.2)}
-
-.assign-badge{font-family:var(--mono);font-size:8px;padding:3px 7px;border-radius:2px;background:rgba(144,96,240,.1);color:var(--purple);border:1px solid rgba(144,96,240,.2);cursor:pointer;transition:all .12s;min-height:24px;display:inline-flex;align-items:center}
-.assign-badge:hover,.assign-badge:active{background:rgba(144,96,240,.2)}
-.assign-badge.none{color:var(--t4);background:var(--s2);border-color:var(--b1)}
-
-.note-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:10px;color:var(--t3);cursor:pointer}
-.note-cell:hover{color:var(--t2)}
-
-/* ════════════════════════════════════════════════════
-   STATUS BAR
-   ════════════════════════════════════════════════════ */
-.statusbar{display:flex;align-items:center;gap:12px;padding:0 16px;height:24px;background:var(--s1);border-top:1px solid var(--b1);flex-shrink:0;font-family:var(--mono);font-size:8px;color:var(--t4);padding-bottom:var(--safe-bottom);overflow:hidden}
-.statusbar .seg{display:flex;align-items:center;gap:4px;white-space:nowrap}
-.statusbar .dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-.statusbar .gold{color:var(--gold)}
-.statusbar .push-right{margin-left:auto}
-
-/* ════════════════════════════════════════════════════
-   MODALS
-   ════════════════════════════════════════════════════ */
-.modal-overlay{position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:100;display:none;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--s1);border:1px solid var(--b2);border-radius:10px;width:440px;max-width:94vw;max-height:85vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7)}
-.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--b1)}
-.modal-title{font-size:14px;font-weight:700}
-.modal-close{background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;padding:8px;min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;border-radius:4px}
-.modal-close:hover{color:var(--t1);background:var(--s3)}
-.modal-body{padding:16px 18px}
-.modal-field{margin-bottom:14px}
-.modal-field label{display:block;font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
-.modal-field select,.modal-field input,.modal-field textarea{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--t1);font-family:var(--mono);font-size:12px;padding:10px 12px;outline:none;transition:border-color .15s;min-height:42px}
-.modal-field select:focus,.modal-field input:focus,.modal-field textarea:focus{border-color:var(--lime)}
-.modal-field textarea{resize:vertical;min-height:70px}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--b1);flex-wrap:wrap}
-.modal-actions .tb-btn{min-height:40px;padding:8px 14px;font-size:10px}
-
-/* EMPTY */
-.empty{text-align:center;padding:60px 20px;font-family:var(--mono);color:var(--t3)}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:.3}
-.empty-text{font-size:13px;margin-bottom:6px}
-.empty-sub{font-size:10px;color:var(--t4)}
-
-/* TOAST */
-.toast{position:fixed;bottom:calc(30px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(10px);padding:10px 20px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--t1);z-index:200;opacity:0;transition:all .25s;pointer-events:none;max-width:90vw;text-align:center;white-space:nowrap}
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
-.toast.ok{border-color:rgba(32,192,96,.3)}
-.toast.warn{border-color:rgba(224,144,32,.3)}
-
-/* CONFIRM DIALOG */
-.confirm-overlay{position:fixed;inset:0;background:rgba(4,6,10,.9);z-index:150;display:none;align-items:center;justify-content:center}
-.confirm-overlay.open{display:flex}
-.confirm-box{background:var(--s1);border:1px solid rgba(224,64,80,.3);border-radius:10px;width:400px;max-width:92vw;padding:24px;text-align:center}
-.confirm-box h3{font-size:15px;margin-bottom:8px;color:var(--dn)}
-.confirm-box p{font-size:12px;color:var(--t2);margin-bottom:20px;line-height:1.5}
-.confirm-btns{display:flex;gap:8px;justify-content:center}
-
-/* Tab panel visibility */
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* ════════════════════════════════════════════════════
-   TABLET (768–1024)
-   ════════════════════════════════════════════════════ */
-@media(max-width:1024px){
-  .table-view .col-ip,.table-view .col-source,.table-view .col-notes,.table-view .col-session,.table-view .col-extra{display:none}
-  .stat-chip:nth-child(3){display:none}
-  .logo-sub{display:none}
-  .tb-btn span.btn-label{display:none}
-}
-
-/* ════════════════════════════════════════════════════
-   MOBILE (<768)
-   ════════════════════════════════════════════════════ */
-@media(max-width:767px){
-  .table-view{display:none!important}
-  .card-view{display:block!important}
-  .topbar{height:auto;min-height:48px;flex-wrap:wrap;padding:8px 12px;gap:6px}
-  .logo-text{font-size:12px}
-  .logo-sub{display:none}
-  .tb-stats{order:3;width:100%;gap:6px}
-  .stat-chip{flex:1;justify-content:center;font-size:8px;padding:4px 6px}
-  .toolbar{padding:8px 12px;gap:6px}
-  .search-box{min-width:100%;order:-1}
-  .filters-row{width:100%}
-  .bulk-bar{padding:8px 12px;gap:6px}
-  .bulk-bar .tb-btn{font-size:8px;padding:6px 8px;min-height:34px}
-  .modal-overlay,.confirm-overlay{align-items:flex-end}
-  .modal,.confirm-box{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:92vh;border-bottom:none}
-  .modal-hdr{padding:12px 16px}
-  .modal-body{padding:12px 16px}
-  .modal-actions{padding:12px 16px;padding-bottom:calc(12px + var(--safe-bottom))}
-  .modal-field input,.modal-field select,.modal-field textarea{font-size:16px;min-height:46px}
-  .statusbar{height:auto;min-height:28px;padding:4px 12px;flex-wrap:wrap;gap:6px;padding-bottom:calc(4px + var(--safe-bottom))}
-  .statusbar .seg:nth-child(2),.statusbar .seg:nth-child(3){display:none}
-  .tab-item{padding:10px 12px;font-size:9px}
-}
-
-/* ════════════════════════════════════════════════════
-   SMALL MOBILE (<400)
-   ════════════════════════════════════════════════════ */
-@media(max-width:400px){
-  .topbar{padding:6px 10px}
-  .logo-text{font-size:11px}
-  .card-grid{grid-template-columns:1fr}
-  .stat-chip{font-size:8px;padding:3px 5px}
-  .tb-btn{font-size:8px;padding:5px 8px}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keralee & Kayden Adventure Channel</title>
+  <style>
+    :root{
+      --bg1:#09111f; --bg2:#12203b; --panel:rgba(18,28,54,.96); --line:rgba(255,255,255,.08);
+      --text:#eef4ff; --muted:#b8c5e6; --pink:#ff6fb6; --gold:#ffd36d; --blue:#6eb7ff; --green:#6ee1b6;
+      --danger:#ff7d7d; --ok:#8de7c1; --shadow:0 18px 50px rgba(0,0,0,.28); --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      min-height:100vh; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255,111,182,.16), transparent 25%),
+        radial-gradient(circle at top right, rgba(110,183,255,.16), transparent 25%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+    }
+    a{text-decoration:none;color:inherit}
+    button,input,textarea,select{font:inherit}
+    img,video{display:block;max-width:100%}
+    .wrap{width:min(1240px,calc(100% - 32px));margin:0 auto}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(7,12,25,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+    .topbar-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:14px;font-weight:800}
+    .brand-mark{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),#9c7cff,var(--blue));box-shadow:var(--shadow);font-size:1.35rem}
+    .brand small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+    .nav,.nav-actions,.hero-actions,.action-row,.stream-actions,.tag-row,.toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .nav-actions{align-items:center}
+    .nav a,.btn,.chip{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--muted);cursor:pointer;transition:.18s ease}
+    .nav a,.chip{padding:10px 14px;border-radius:999px}
+    .btn{border-radius:14px;padding:13px 18px;font-weight:800}
+    .nav a:hover,.btn:hover,.chip:hover{color:#fff;transform:translateY(-1px)}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),#ffb959);color:#0d1529}
+    .btn-secondary{background:linear-gradient(135deg,#7f8dff,#9b7cff);color:#fff}
+    .btn-danger{background:linear-gradient(135deg,#ff6d6d,#ff8e8e);color:#fff}
+    .btn-ghost{color:#fff}
+    .btn-sm{padding:9px 14px;font-size:.92rem}
+    .page-shell{padding:24px 0 40px}
+    .page{display:none}
+    .page.active{display:block}
+    .hero,.two-col,.three-col,.studio-grid,.route-grid,.comment-grid,.library-grid,.photo-grid,.shorts-grid,.journal-grid,.hero-side,.studio-seats{display:grid;gap:16px}
+    .hero{grid-template-columns:1.15fr .85fr}
+    .hero-side{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .studio-grid{grid-template-columns:1.15fr .85fr}
+    .route-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .comment-grid{grid-template-columns:1.15fr .85fr}
+    .studio-seats{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .library-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .photo-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+    .shorts-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+    .journal-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .card,.panel,.media-item,.photo-item,.short-item,.journal-item,.comment-item,.route-card,.status-card,.seat-card{background:linear-gradient(180deg,rgba(18,28,54,.96),rgba(10,16,31,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .hero-card,.panel,.route-card,.status-card{padding:22px;position:relative;overflow:hidden}
+    .hero-card::before,.panel::before,.route-card::before{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-60px;bottom:-60px;background:linear-gradient(135deg,rgba(255,111,182,.16),rgba(110,183,255,.16))}
+    .eyebrow,.pill,.live-badge,.scene-pill,.comment-status,.auth-state{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-weight:700}
+    h1,h2,h3,h4{margin:0}
+    .hero h1{font-size:clamp(2.2rem,4vw,4.2rem);line-height:1.02;letter-spacing:-.03em;max-width:11ch;margin-top:18px}
+    .gradient-text{background:linear-gradient(135deg,var(--gold),var(--pink),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero p,.section-head p,.muted,.mini-note{color:var(--muted);line-height:1.65}
+    .section-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:16px}
+    .section-head h2{font-size:clamp(1.5rem,2vw,2.1rem)}
+    .status-card,.stat-box,.seat-card{padding:16px}
+    .person-row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px}
+    .person-info{display:flex;align-items:center;gap:14px}
+    .avatar{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:1.4rem;font-weight:900;box-shadow:var(--shadow)}
+    .avatar-k{background:linear-gradient(135deg,var(--pink),#ffb26f)}
+    .avatar-kd{background:linear-gradient(135deg,var(--blue),var(--green))}
+    .avatar-duo{background:linear-gradient(135deg,var(--gold),#9c7cff)}
+    .tag{padding:8px 12px;border-radius:999px;font-size:.88rem;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+    .feature-list{padding-left:18px;color:var(--muted);line-height:1.7}
+    .feature-list li+li{margin-top:8px}
+    .safe-note,.locked-banner,.comment-safe-note{padding:14px 16px;border-radius:16px;line-height:1.6;border:1px solid rgba(255,255,255,.12)}
+    .safe-note{background:rgba(110,225,182,.12);color:#dbfff1;border-color:rgba(110,225,182,.2)}
+    .locked-banner{background:rgba(255,211,109,.12);color:#fff6d1;border-color:rgba(255,211,109,.18)}
+    .comment-safe-note{background:rgba(110,183,255,.12);color:#e4f1ff;border-color:rgba(110,183,255,.2)}
+    .preview{aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(255,111,182,.22),rgba(110,183,255,.18));border:1px solid rgba(255,255,255,.1);position:relative;display:grid;place-items:center}
+    .preview video{width:100%;height:100%;object-fit:cover;background:#060b16}
+    .preview-placeholder{text-align:center;padding:20px;color:#fff}
+    .viewer-controls{position:absolute;bottom:14px;left:14px;right:14px;z-index:3;display:none;gap:8px;justify-content:center}
+    .viewer-controls.show{display:flex}
+    .viewer-controls button{padding:10px 16px;border-radius:14px;border:none;font-weight:800;cursor:pointer;font-size:.92rem;backdrop-filter:blur(8px)}
+    .vc-unmute{background:rgba(255,58,58,.9);color:#fff}
+    .vc-expand{background:rgba(110,183,255,.9);color:#fff}
+    .vc-popout{background:rgba(155,124,255,.9);color:#fff}
+    .stream-fullscreen{position:fixed;inset:0;z-index:300;background:#000;display:none;align-items:center;justify-content:center}
+    .stream-fullscreen.show{display:flex}
+    .stream-fullscreen video{width:100%;height:100%;object-fit:contain}
+    .stream-fullscreen .fs-close{position:absolute;top:20px;right:20px;z-index:301;padding:12px 20px;border-radius:14px;background:rgba(255,255,255,.15);border:none;color:#fff;font-weight:800;cursor:pointer;font-size:1rem;backdrop-filter:blur(8px)}
+    .stream-fullscreen .fs-unmute{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:301;padding:12px 20px;border-radius:14px;background:rgba(255,58,58,.9);border:none;color:#fff;font-weight:800;cursor:pointer;font-size:1rem}
+    .live-badge{position:absolute;left:14px;top:14px;background:rgba(255,58,58,.92);display:none;z-index:2}
+    .live-badge.show{display:inline-flex}
+    .scene-pill{position:absolute;right:14px;top:14px;background:rgba(7,12,25,.72);z-index:2}
+    .seat-card{display:grid;gap:12px;align-content:start;background:rgba(255,255,255,.05)}
+    .seat-visual{min-height:78px;border-radius:16px;border:1px dashed rgba(255,255,255,.15);display:grid;place-items:center;text-align:center;padding:14px;color:var(--muted);background:rgba(255,255,255,.03)}
+    .upload-zone{padding:20px;border:2px dashed rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.04)}
+    .upload-zone input{width:100%;margin-top:12px}
+    .media-item,.photo-item,.short-item,.journal-item,.comment-item{overflow:hidden}
+    .media-item video{width:100%;aspect-ratio:16/9;object-fit:cover;background:#060b16}
+    .short-item video{width:100%;aspect-ratio:9/16;object-fit:cover;background:#060b16}
+    .photo-item img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#0d1528}
+    .media-meta,.short-meta,.journal-body,.comment-body{padding:14px}
+    .media-meta strong,.short-meta strong,.journal-body strong,.comment-body strong{display:block;margin-bottom:6px}
+    .short-placeholder{min-height:260px;padding:16px;border-radius:20px;background:linear-gradient(135deg,rgba(255,111,182,.34),rgba(255,211,109,.18));display:flex;align-items:end}
+    form{display:grid;gap:12px}
+    .form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    label{display:grid;gap:8px;color:var(--muted);font-size:.95rem}
+    input[type="text"],input[type="password"],input[type="date"],select,textarea{width:100%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#fff;border-radius:14px;padding:13px 14px;outline:none}
+    textarea{min-height:130px;resize:vertical}
+    input::placeholder,textarea::placeholder{color:#9fb0d6}
+    .comment-list{display:grid;gap:12px}
+    .comment-item small{color:var(--muted)}
+    .host-only{display:none!important}
+    body.role-host .host-only{display:block!important}
+    body.role-host .viewer-note{display:none!important}
+    .hidden{display:none!important}
+    .footer{padding:26px 0 46px;color:var(--muted);text-align:center;line-height:1.7}
+    .empty-state{padding:18px;border-radius:16px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.12);color:var(--muted);text-align:center}
+    .modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,7,16,.78)}
+    .modal.show{display:flex}
+    .modal-card{width:min(480px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:22px;background:linear-gradient(180deg,rgba(18,28,54,.98),rgba(8,13,27,.99));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+    .close-btn{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;cursor:pointer;font-size:1.1rem}
+    .copied{color:#dcfff2;font-weight:700;min-height:1.1em}
+    .error-msg{color:var(--danger);font-weight:700;min-height:1.1em}
+    .tab-row{display:flex;gap:4px;margin-bottom:14px}
+    .tab-btn{flex:1;padding:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:14px;cursor:pointer;font-weight:700;text-align:center;transition:.18s}
+    .tab-btn.active{background:linear-gradient(135deg,var(--gold),#ffb959);color:#0d1529;border-color:transparent}
+    .user-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(110,225,182,.14);border:1px solid rgba(110,225,182,.25);color:var(--ok);font-weight:700;font-size:.92rem}
+    @media (max-width:1080px){.three-col,.studio-grid,.comment-grid,.route-grid,.studio-seats{grid-template-columns:1fr 1fr}}
+    @media (max-width:900px){.hero,.two-col,.three-col,.studio-grid,.comment-grid,.route-grid,.hero-side,.studio-seats,.form-row{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-<div class="app">
-
-  <!-- TOPBAR (original) -->
-  <div class="topbar">
-    <div class="tb-left">
-      <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#04060a" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-      <div>
-        <div class="logo-text">NexusPay Lead Command Center</div>
-        <div class="logo-sub">INTELLIGENCE · LEADS · PIPELINE</div>
-      </div>
-    </div>
-    <div class="tb-stats">
-      <div class="stat-chip"><span class="dot live"></span>LIVE <strong id="total-count">0</strong></div>
-      <div class="stat-chip">TODAY <strong id="today-count">0</strong></div>
-      <div class="stat-chip">WEEK <strong id="week-count">0</strong></div>
-    </div>
-    <div class="tb-actions">
-      <button class="tb-btn lime" onclick="openAddLead()" id="btn-add" style="font-weight:700">+ <span class="btn-label">Add Lead</span></button>
-      <button class="tb-btn" onclick="openBitrixSettings()" id="btn-bitrix" style="border-color:rgba(0,200,160,.3);color:var(--teal)">⚡<span class="btn-label"> Bitrix24</span></button>
-      <button class="tb-btn" onclick="refreshData()">↻<span class="btn-label"> Refresh</span></button>
-      <button class="tb-btn" onclick="exportCSV()">↓<span class="btn-label"> CSV</span></button>
-    </div>
-  </div>
-
-  <!-- TAB BAR (NEW) -->
-  <div class="tab-bar">
-    <div class="tab-item active" data-tab="leads" onclick="switchTab('leads')">📋 LEADS <span class="tab-count" id="tc-leads">0</span></div>
-    <div class="tab-item" data-tab="traffic" onclick="switchTab('traffic')">🌐 TRAFFIC <span class="tab-count" id="tc-traffic">0</span></div>
-    <div class="tab-item" data-tab="careers" onclick="switchTab('careers')">💼 CAREERS <span class="tab-count" id="tc-careers">0</span></div>
-    <div class="tab-item" data-tab="statements" onclick="switchTab('statements')">📄 STATEMENTS <span class="tab-count" id="tc-statements">0</span></div>
-  </div>
-
-  <!-- TOOLBAR (shared — search placeholder changes per tab) -->
-  <div class="toolbar">
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="search" placeholder="Search name, email, business, phone…" oninput="applyFilters()">
-    </div>
-    <div class="filters-row" id="filters-row">
-      <div class="filter-chip on" data-filter="all" onclick="setFilter('all')">All</div>
-      <div class="filter-chip" data-filter="new" onclick="setFilter('new')">New</div>
-      <div class="filter-chip" data-filter="contacted" onclick="setFilter('contacted')">Contacted</div>
-      <div class="filter-chip" data-filter="qualified" onclick="setFilter('qualified')">Qualified</div>
-      <div class="filter-chip" data-filter="converted" onclick="setFilter('converted')">Converted</div>
-      <div class="filter-chip" data-filter="lost" onclick="setFilter('lost')">Lost</div>
-    </div>
-  </div>
-
-  <!-- BULK ACTION BAR (original — shown for leads, adapted for other tabs) -->
-  <div class="bulk-bar" id="bulk-bar">
-    <span class="bulk-count"><span id="bulk-count">0</span> selected</span>
-    <div class="bulk-sep"></div>
-    <span id="bulk-actions-inner">
-      <button class="tb-btn" onclick="bulkSetStatus('contacted')">Contacted</button>
-      <button class="tb-btn" onclick="bulkSetStatus('qualified')">Qualified</button>
-      <button class="tb-btn" onclick="bulkSetStatus('converted')">Converted</button>
-      <button class="tb-btn" onclick="bulkSetStatus('lost')">Lost</button>
-      <div class="bulk-sep"></div>
-      <button class="tb-btn" onclick="bulkAssign()">Assign</button>
-    </span>
-    <div class="bulk-sep"></div>
-    <button class="tb-btn red" onclick="bulkDeletePermanent()">✕ Delete Permanently</button>
-    <div class="bulk-sep"></div>
-    <button class="tb-btn" onclick="bulkMoveToCareers()" id="bulk-careers-btn" style="border-color:rgba(144,96,240,.3);color:var(--purple)">💼 Move to Careers</button>
-    <button class="tb-btn" onclick="bulkPushBitrix()" id="bulk-bitrix-btn" style="border-color:rgba(0,200,160,.3);color:var(--teal)">⚡ Push to Bitrix24</button>
-  </div>
-
-  <!-- MAIN SCROLL -->
-  <div class="main-scroll">
-
-    <!-- LEADS TABLE (original) -->
-    <div class="table-view" id="table-view">
-      <table>
-        <thead>
-          <tr id="thead-leads">
-            <th style="width:30px"><input type="checkbox" class="cb" id="cb-all" onchange="toggleAll()"></th>
-            <th onclick="sortBy('full_name')">Name <span class="sort-arrow" id="sort-full_name"></span></th>
-            <th onclick="sortBy('business_name')">Business <span class="sort-arrow" id="sort-business_name"></span></th>
-            <th onclick="sortBy('email')">Email <span class="sort-arrow" id="sort-email"></span></th>
-            <th onclick="sortBy('phone')">Phone <span class="sort-arrow" id="sort-phone"></span></th>
-            <th onclick="sortBy('status')">Status <span class="sort-arrow" id="sort-status"></span></th>
-            <th onclick="sortBy('assigned_to')">Assigned <span class="sort-arrow" id="sort-assigned_to"></span></th>
-            <th onclick="sortBy('created_at')">Captured <span class="sort-arrow" id="sort-created_at"></span></th>
-            <th class="col-session" onclick="sortBy('session_duration_ms')">Session <span class="sort-arrow" id="sort-session_duration_ms"></span></th>
-            <th class="col-source" onclick="sortBy('utm_source')">Source <span class="sort-arrow" id="sort-utm_source"></span></th>
-            <th class="col-notes">Notes</th>
-            <th>CRM</th>
-            <th class="col-ip" style="width:40px">IP</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- MOBILE CARDS (leads) -->
-    <div class="card-view" id="card-view"></div>
-
-    <!-- EMPTY STATE -->
-    <div class="empty" id="empty-state" style="display:none">
-      <div class="empty-icon">📡</div>
-      <div class="empty-text" id="empty-text">No leads captured yet</div>
-      <div class="empty-sub" id="empty-sub">Visitors who complete the AI onboarding will appear here</div>
-    </div>
-  </div>
-
-  <!-- STATUS BAR (original) -->
-  <div class="statusbar">
-    <div class="seg"><span class="dot"></span>WEBHOOK LIVE</div>
-    <div class="seg">API: nexuspay-visitor-webhook.onrender.com</div>
-    <div class="seg">DB: PostgreSQL</div>
-    <div class="seg gold">🎖 VETERAN OWNED</div>
-    <div class="seg push-right">© 2024–2026 NexusPay Services, LLC</div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     MODALS — ALL ORIGINAL + CONFIRM DIALOG
-     ══════════════════════════════════════════════════════════════ -->
-
-<!-- EDIT MODAL (original) -->
-<div class="modal-overlay" id="edit-overlay" onclick="if(event.target.id==='edit-overlay')closeEdit()">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title" id="edit-title">Edit Lead</div>
-      <button class="modal-close" onclick="closeEdit()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="edit-id">
-      <div class="modal-field"><label>Full Name</label><input id="edit-name"></div>
-      <div class="modal-field"><label>Business</label><input id="edit-biz"></div>
-      <div class="modal-field"><label>Email</label><input id="edit-email" type="email"></div>
-      <div class="modal-field"><label>Phone</label><input id="edit-phone" type="tel"></div>
-      <div class="modal-field"><label>Status</label>
-        <select id="edit-status">
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="converted">Converted</option>
-          <option value="lost">Lost</option>
-        </select>
-      </div>
-      <div class="modal-field"><label>Assigned To</label><input id="edit-assigned" placeholder="e.g. Marc, Sarah, Team A"></div>
-      <div class="modal-field"><label>Notes</label><textarea id="edit-notes" placeholder="Add notes about this lead…"></textarea></div>
-    </div>
-    <div class="modal-actions">
-      <button class="tb-btn red" onclick="deleteLeadPermanent()">✕ Delete Permanently</button>
-      <button class="tb-btn" onclick="moveSingleToCareers()" style="border-color:rgba(144,96,240,.3);color:var(--purple)">💼 Careers</button>
-      <button class="tb-btn" onclick="pushSingleBitrix(document.getElementById('edit-id').value)" style="border-color:rgba(0,200,160,.3);color:var(--teal)">⚡ Bitrix24</button>
-      <button class="tb-btn" onclick="closeEdit()">Cancel</button>
-      <button class="tb-btn lime" onclick="saveEdit()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- ASSIGN MODAL (original) -->
-<div class="modal-overlay" id="assign-overlay" onclick="if(event.target.id==='assign-overlay')closeAssignModal()">
-  <div class="modal" style="max-width:360px">
-    <div class="modal-hdr">
-      <div class="modal-title">Assign Leads</div>
-      <button class="modal-close" onclick="closeAssignModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-field"><label>Assign To</label><input id="assign-to" placeholder="e.g. Marc, Sarah, Team A"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="tb-btn" onclick="closeAssignModal()">Cancel</button>
-      <button class="tb-btn lime" onclick="confirmAssign()">Assign</button>
-    </div>
-  </div>
-</div>
-
-<!-- ADD LEAD MODAL (original) -->
-<div class="modal-overlay" id="add-overlay" onclick="if(event.target.id==='add-overlay')closeAddLead()">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">+ Add New Lead</div>
-      <button class="modal-close" onclick="closeAddLead()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-field"><label>Full Name *</label><input id="add-name" placeholder="Jane Martinez"></div>
-      <div class="modal-field"><label>Business Name *</label><input id="add-biz" placeholder="Martinez Digital Agency"></div>
-      <div class="modal-field"><label>Email *</label><input id="add-email" type="email" placeholder="jane@martinez.com"></div>
-      <div class="modal-field"><label>Phone</label><input id="add-phone" type="tel" placeholder="(555) 123-4567"></div>
-      <div class="modal-field"><label>Status</label>
-        <select id="add-status">
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="converted">Converted</option>
-        </select>
-      </div>
-      <div class="modal-field"><label>Assigned To</label><input id="add-assigned" placeholder="e.g. Marc, Sarah"></div>
-      <div class="modal-field"><label>Notes</label><textarea id="add-notes" placeholder="How did this lead come in?"></textarea></div>
-      <div id="add-error" style="display:none;color:var(--dn);font-family:var(--mono);font-size:10px;padding:6px 0"></div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 0">
-        <input type="checkbox" id="add-push-bitrix" class="cb" style="accent-color:var(--teal)">
-        <label for="add-push-bitrix" style="font-family:var(--mono);font-size:9px;color:var(--teal);cursor:pointer">⚡ Also push to Bitrix24 CRM</label>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="tb-btn" onclick="closeAddLead()">Cancel</button>
-      <button class="tb-btn lime" onclick="saveNewLead()">Add Lead</button>
-    </div>
-  </div>
-</div>
-
-<!-- BITRIX24 SETTINGS MODAL (original) -->
-<div class="modal-overlay" id="bitrix-overlay" onclick="if(event.target.id==='bitrix-overlay')closeBitrixSettings()">
-  <div class="modal" style="max-width:500px">
-    <div class="modal-hdr">
-      <div class="modal-title">⚡ Bitrix24 CRM Integration</div>
-      <button class="modal-close" onclick="closeBitrixSettings()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="background:rgba(0,200,160,.06);border:1px solid rgba(0,200,160,.15);border-radius:6px;padding:12px;margin-bottom:16px">
-        <div style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--teal);margin-bottom:6px">✓ PRE-CONFIGURED</div>
-        <div style="font-size:11px;color:var(--t2);line-height:1.5">
-          Your Bitrix24 CRM is connected via <strong style="color:var(--t1)">nexuspay.bitrix24.com</strong>.<br>
-          All calls are securely proxied through your Render backend — no CORS issues, no exposed keys.<br>
-          Click <strong style="color:var(--teal)">Test Connection</strong> below to verify.
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">▶</div>
+        <div>
+          <div>Keralee & Kayden Adventure Channel</div>
+          <small>Family fun • gaming • toy reviews • adventure journal</small>
         </div>
       </div>
-      <div class="modal-field">
-        <label>Bitrix24 Instance</label>
-        <input id="bitrix-url" value="nexuspay.bitrix24.com (proxied)" disabled style="color:var(--teal);opacity:.7">
+      <div class="nav-actions">
+        <nav class="nav" aria-label="Main navigation">
+          <a href="#/home">Home</a>
+          <a href="#/channels">Channels</a>
+          <a href="#/live">Live Studio</a>
+          <a href="#/videos">Videos</a>
+          <a href="#/shorts">Shorts</a>
+          <a href="#/photos">Photos</a>
+          <a href="#/journal">Journal</a>
+        </nav>
+        <span id="userBadge" class="user-badge hidden"></span>
+        <button id="authBtn" class="btn btn-ghost" type="button">Sign In</button>
+        <button id="logoutBtn" class="btn btn-ghost hidden" type="button">Sign Out</button>
       </div>
-      <div class="modal-field">
-        <label>Default Assigned By (Bitrix User ID)</label>
-        <input id="bitrix-assigned" type="number" placeholder="1" value="1">
-      </div>
-      <div class="modal-field">
-        <label>Lead Source ID</label>
-        <input id="bitrix-source" placeholder="WEB" value="WEB">
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
-        <input type="checkbox" id="bitrix-auto" class="cb" style="accent-color:var(--teal)">
-        <label for="bitrix-auto" style="font-family:var(--mono);font-size:9px;color:var(--teal);cursor:pointer">⚡ Auto-push new leads to Bitrix24 when they come in</label>
-      </div>
-      <div id="bitrix-status" style="display:none;font-family:var(--mono);font-size:10px;padding:8px;border-radius:4px;margin-top:8px"></div>
     </div>
-    <div class="modal-actions">
-      <button class="tb-btn" onclick="testBitrixConnection()" style="border-color:rgba(0,200,160,.3);color:var(--teal)">🔌 Test Connection</button>
-      <button class="tb-btn" onclick="closeBitrixSettings()">Cancel</button>
-      <button class="tb-btn lime" onclick="saveBitrixSettings()">Save Settings</button>
+  </header>
+
+  <main class="wrap page-shell">
+    <section class="page active" data-page="home">
+      <div class="hero">
+        <article class="card hero-card">
+          <div class="eyebrow">🌟 Creator home for Keralee & Kayden</div>
+          <h1><span class="gradient-text">Big adventures.</span><br>Big laughs.<br>Big imagination.</h1>
+          <p>Watch live streams, leave comments, and follow Keralee & Kayden's adventures. Sign in to join the fun!</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-route="live">Open Live Studio</button>
+            <button class="btn btn-secondary" type="button" data-route="channels">View Channels</button>
+            <button class="btn btn-ghost" type="button" data-route="videos">Go to Video Library</button>
+          </div>
+        </article>
+        <aside class="hero-side">
+          <div class="status-card"><strong>Live streaming</strong><div class="muted">Watch Keralee & Kayden go live from their studio.</div></div>
+          <div class="status-card"><strong>Studio channels</strong><div class="muted">Solo and shared studio pages with dedicated streams.</div></div>
+          <div class="status-card"><strong>Live comments</strong><div class="muted">Leave family-safe comments during live sessions.</div></div>
+          <div class="status-card"><strong>Profanity filter</strong><div class="muted">All comments are filtered for family-safe language.</div></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page" data-page="channels">
+      <div class="section-head"><div><h2>Featured channels</h2><p>Each channel has its own dedicated studio page and live stream.</p></div></div>
+      <div class="three-col">
+        <article class="route-card">
+          <div class="person-row"><div class="person-info"><div class="avatar avatar-k">K</div><div><h3>Keralee Solo</h3><div class="muted">Toy reviews • product demos • bright creator lane</div></div></div><span class="tag">Age 9</span></div>
+          <div class="tag-row"><span class="tag">Solo page</span><span class="tag">Live stream</span><span class="tag">Comments</span></div>
+          <p class="muted">Dedicated live page for Keralee's streams and community comments.</p>
+          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-keralee">Open Page</button></div>
+        </article>
+        <article class="route-card">
+          <div class="person-row"><div class="person-info"><div class="avatar avatar-kd">K</div><div><h3>Kayden Solo</h3><div class="muted">Gaming day • wins • fun highlights</div></div></div><span class="tag">Age 8</span></div>
+          <div class="tag-row"><span class="tag">Solo page</span><span class="tag">Live stream</span><span class="tag">Comments</span></div>
+          <p class="muted">Dedicated live page for Kayden's gaming sessions and audience chat.</p>
+          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-kayden">Open Page</button></div>
+        </article>
+        <article class="route-card">
+          <div class="person-row"><div class="person-info"><div class="avatar avatar-duo">2</div><div><h3>Together Studio</h3><div class="muted">Sibling collabs • shared episodes • two-laptop model</div></div></div><span class="tag">Studio</span></div>
+          <div class="tag-row"><span class="tag">Shared page</span><span class="tag">Live stream</span><span class="tag">Comments</span></div>
+          <p class="muted">Dedicated shared page for both hosts together, with comments and channel-level moderation.</p>
+          <div class="stream-actions"><button class="btn btn-secondary" type="button" data-route="studio-together">Open Page</button></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" data-page="live">
+      <div class="section-head"><div><h2>Live Studio directory</h2><p>See which channels are live and jump into a stream.</p></div></div>
+      <div class="route-grid">
+        <article class="route-card"><h3>Keralee Live</h3><p class="muted">Toy and product reviews with live comments.</p><div class="action-row"><span class="pill" data-live-status="studio-keralee">Offline</span><button class="btn btn-secondary" type="button" data-route="studio-keralee">Watch</button></div></article>
+        <article class="route-card"><h3>Kayden Live</h3><p class="muted">Gaming sessions with live viewer comments.</p><div class="action-row"><span class="pill" data-live-status="studio-kayden">Offline</span><button class="btn btn-secondary" type="button" data-route="studio-kayden">Watch</button></div></article>
+        <article class="route-card"><h3>Together Studio</h3><p class="muted">Sibling channel with combined comments.</p><div class="action-row"><span class="pill" data-live-status="studio-together">Offline</span><button class="btn btn-secondary" type="button" data-route="studio-together">Watch</button></div></article>
+      </div>
+    </section>
+
+    <!-- STUDIO PAGES (keralee, kayden, together) -->
+    <section class="page" data-page="studio-keralee">
+      <div class="section-head"><div><h2>Keralee Live Page</h2><p>Keralee's solo stream with live comments and family-safe filtering.</p></div></div>
+      <div class="studio-grid">
+        <article class="panel">
+          <div class="toolbar"><span class="pill">Keralee Solo</span><span class="pill" data-live-status="studio-keralee">Offline</span></div>
+          <div class="preview" style="margin-top:14px;" data-preview="studio-keralee">
+            <span class="live-badge" data-live-badge="studio-keralee">LIVE</span>
+            <span class="scene-pill">Keralee Solo View</span>
+            <video autoplay muted playsinline data-camera-preview="studio-keralee" class="host-only"></video>
+            <video autoplay muted playsinline webkit-playsinline data-viewer-video="studio-keralee" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <div class="viewer-controls" data-viewer-controls="studio-keralee"><button class="vc-unmute" type="button" data-unmute="studio-keralee">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-keralee">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-keralee">↗ Pop Out</button></div>
+            <div class="preview-placeholder" data-camera-placeholder="studio-keralee"><h3 style="margin-bottom:10px;">Keralee's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Keralee goes live.</p></div>
+          </div>
+          <div class="action-row host-only" style="margin-top:14px;">
+            <button class="btn btn-primary" type="button" data-camera-start="studio-keralee">Turn On Camera</button>
+            <button class="btn btn-danger" type="button" data-camera-stop="studio-keralee">Turn Off Camera</button>
+            <button class="btn btn-secondary" type="button" data-go-live="studio-keralee">Go Live</button>
+            <button class="btn btn-danger hidden" type="button" data-stop-live="studio-keralee">Stop Stream</button>
+            <button class="btn btn-ghost" type="button" data-host-mute="studio-keralee">🔇 Mute</button>
+            <button class="btn btn-ghost" type="button" data-expand="studio-keralee">⛶ Expand</button>
+            <button class="btn btn-ghost" type="button" data-popout-stream="studio-keralee">↗ Pop Out</button>
+          </div>
+          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
+        </article>
+        <article class="panel">
+          <h3>About Keralee's page</h3>
+          <div class="tag-row"><span class="tag">Toy reviews</span><span class="tag">Product demos</span><span class="tag">Live chat</span></div>
+          <p class="muted">Watch Keralee's live streams and leave family-safe comments.</p>
+          <ul class="feature-list"><li>Live streaming via Cloudflare Stream</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
+        </article>
+      </div>
+      <div class="comment-grid" style="margin-top:18px;">
+        <article class="panel">
+          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Comments are shared across all viewers in real time.</div></div><span class="comment-status">Family-safe mode on</span></div>
+          <form data-comment-form="studio-keralee">
+            <div class="form-row"><label>Display name<input type="text" name="author" placeholder="Your name" required></label><label>Channel<input type="text" value="Keralee Solo" disabled></label></div>
+            <label>Comment<textarea name="message" placeholder="Leave a kind, family-safe comment..." required></textarea></label>
+            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost host-only" type="button" data-clear-comments="studio-keralee">Clear Comments</button></div>
+            <div class="copied" data-comment-feedback="studio-keralee"></div>
+          </form>
+        </article>
+        <article class="panel"><h3>Comment feed</h3><div class="comment-list" data-comment-list="studio-keralee"></div></article>
+      </div>
+    </section>
+
+    <section class="page" data-page="studio-kayden">
+      <div class="section-head"><div><h2>Kayden Live Page</h2><p>Kayden's gaming stream with live comments and family-safe filtering.</p></div></div>
+      <div class="studio-grid">
+        <article class="panel">
+          <div class="toolbar"><span class="pill">Kayden Solo</span><span class="pill" data-live-status="studio-kayden">Offline</span></div>
+          <div class="preview" style="margin-top:14px;" data-preview="studio-kayden">
+            <span class="live-badge" data-live-badge="studio-kayden">LIVE</span>
+            <span class="scene-pill">Kayden Solo View</span>
+            <video autoplay muted playsinline data-camera-preview="studio-kayden" class="host-only"></video>
+            <video autoplay muted playsinline webkit-playsinline data-viewer-video="studio-kayden" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <div class="viewer-controls" data-viewer-controls="studio-kayden"><button class="vc-unmute" type="button" data-unmute="studio-kayden">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-kayden">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-kayden">↗ Pop Out</button></div>
+            <div class="preview-placeholder" data-camera-placeholder="studio-kayden"><h3 style="margin-bottom:10px;">Kayden's stream</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when Kayden goes live.</p></div>
+          </div>
+          <div class="action-row host-only" style="margin-top:14px;">
+            <button class="btn btn-primary" type="button" data-camera-start="studio-kayden">Turn On Camera</button>
+            <button class="btn btn-danger" type="button" data-camera-stop="studio-kayden">Turn Off Camera</button>
+            <button class="btn btn-secondary" type="button" data-go-live="studio-kayden">Go Live</button>
+            <button class="btn btn-danger hidden" type="button" data-stop-live="studio-kayden">Stop Stream</button>
+            <button class="btn btn-ghost" type="button" data-host-mute="studio-kayden">🔇 Mute</button>
+            <button class="btn btn-ghost" type="button" data-expand="studio-kayden">⛶ Expand</button>
+            <button class="btn btn-ghost" type="button" data-popout-stream="studio-kayden">↗ Pop Out</button>
+          </div>
+          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
+        </article>
+        <article class="panel">
+          <h3>About Kayden's page</h3>
+          <div class="tag-row"><span class="tag">Gaming day</span><span class="tag">Solo page</span><span class="tag">Live chat</span></div>
+          <p class="muted">Watch Kayden's gaming sessions and leave family-safe comments.</p>
+          <ul class="feature-list"><li>Live streaming via Cloudflare Stream</li><li>Real-time comments with profanity filter</li><li>Host-only stream and moderation controls</li></ul>
+        </article>
+      </div>
+      <div class="comment-grid" style="margin-top:18px;">
+        <article class="panel">
+          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Comments are shared across all viewers in real time.</div></div><span class="comment-status">Family-safe mode on</span></div>
+          <form data-comment-form="studio-kayden">
+            <div class="form-row"><label>Display name<input type="text" name="author" placeholder="Your name" required></label><label>Channel<input type="text" value="Kayden Solo" disabled></label></div>
+            <label>Comment<textarea name="message" placeholder="Leave a kind, family-safe comment..." required></textarea></label>
+            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost host-only" type="button" data-clear-comments="studio-kayden">Clear Comments</button></div>
+            <div class="copied" data-comment-feedback="studio-kayden"></div>
+          </form>
+        </article>
+        <article class="panel"><h3>Comment feed</h3><div class="comment-list" data-comment-list="studio-kayden"></div></article>
+      </div>
+    </section>
+
+    <section class="page" data-page="studio-together">
+      <div class="section-head"><div><h2>Together Studio Live Page</h2><p>Shared sibling page with one featured live stream and combined comments.</p></div></div>
+      <div class="studio-grid">
+        <article class="panel">
+          <div class="toolbar"><span class="pill">Together Studio</span><span class="pill" data-live-status="studio-together">Offline</span></div>
+          <div class="preview" style="margin-top:14px;" data-preview="studio-together">
+            <span class="live-badge" data-live-badge="studio-together">LIVE</span>
+            <span class="scene-pill">Together Studio Scene</span>
+            <video autoplay muted playsinline data-camera-preview="studio-together" class="host-only"></video>
+            <video autoplay muted playsinline webkit-playsinline data-viewer-video="studio-together" style="display:none;width:100%;height:100%;object-fit:cover;background:#060b16;"></video>
+            <div class="viewer-controls" data-viewer-controls="studio-together"><button class="vc-unmute" type="button" data-unmute="studio-together">🔇 Unmute</button><button class="vc-expand" type="button" data-expand="studio-together">⛶ Expand</button><button class="vc-popout" type="button" data-popout-stream="studio-together">↗ Pop Out</button></div>
+            <div class="preview-placeholder" data-camera-placeholder="studio-together"><h3 style="margin-bottom:10px;">Together Studio</h3><p class="muted" style="margin:0;color:#dfe8ff;">Stream will appear here when both hosts go live.</p></div>
+          </div>
+          <div class="action-row host-only" style="margin-top:14px;">
+            <button class="btn btn-primary" type="button" data-camera-start="studio-together">Turn On Camera</button>
+            <button class="btn btn-danger" type="button" data-camera-stop="studio-together">Turn Off Camera</button>
+            <button class="btn btn-secondary" type="button" data-go-live="studio-together">Go Live</button>
+            <button class="btn btn-danger hidden" type="button" data-stop-live="studio-together">Stop Stream</button>
+            <button class="btn btn-ghost" type="button" data-host-mute="studio-together">🔇 Mute</button>
+            <button class="btn btn-ghost" type="button" data-expand="studio-together">⛶ Expand</button>
+            <button class="btn btn-ghost" type="button" data-popout-stream="studio-together">↗ Pop Out</button>
+          </div>
+          <div class="comment-safe-note" style="margin-top:14px;">Profanity blocking is enabled for comments on this channel.</div>
+        </article>
+        <article class="panel">
+          <h3>Two-laptop studio model</h3>
+          <div class="studio-seats">
+            <div class="seat-card"><span class="pill">Keralee feed</span><div class="seat-visual">Separate laptop feed for toy reviews</div></div>
+            <div class="seat-card"><span class="pill">Kayden feed</span><div class="seat-visual">Separate laptop feed for gaming content</div></div>
+            <div class="seat-card"><span class="pill">Together output</span><div class="seat-visual">Combined sibling show on one featured page</div></div>
+          </div>
+        </article>
+      </div>
+      <div class="comment-grid" style="margin-top:18px;">
+        <article class="panel">
+          <div class="toolbar"><div><h3>Live comments</h3><div class="mini-note">Shared comment feed for the combined sibling studio.</div></div><span class="comment-status">Family-safe mode on</span></div>
+          <form data-comment-form="studio-together">
+            <div class="form-row"><label>Display name<input type="text" name="author" placeholder="Your name" required></label><label>Channel<input type="text" value="Together Studio" disabled></label></div>
+            <label>Comment<textarea name="message" placeholder="Leave a kind, family-safe comment..." required></textarea></label>
+            <div class="action-row"><button class="btn btn-primary" type="submit">Post Comment</button><button class="btn btn-ghost host-only" type="button" data-clear-comments="studio-together">Clear Comments</button></div>
+            <div class="copied" data-comment-feedback="studio-together"></div>
+          </form>
+        </article>
+        <article class="panel"><h3>Comment feed</h3><div class="comment-list" data-comment-list="studio-together"></div></article>
+      </div>
+    </section>
+
+    <section class="page" data-page="videos">
+      <div class="section-head"><div><h2>Video library</h2><p>Adventure videos, gameplay clips, and reviews.</p></div></div>
+      <article class="panel">
+        <div class="upload-zone host-only"><strong>Add adventure videos</strong><div class="mini-note">Host access required.</div><input id="videoUpload" type="file" accept="video/*" multiple></div>
+        <div class="locked-banner viewer-note">Video uploads are managed by the hosts.</div>
+        <div id="videoLibrary" class="library-grid" style="margin-top:16px;"></div>
+      </article>
+    </section>
+
+    <section class="page" data-page="shorts">
+      <div class="section-head"><div><h2>Shorts</h2><p>Quick highlights and vertical clips.</p></div></div>
+      <div class="two-col">
+        <article class="panel">
+          <div class="upload-zone host-only"><strong>Add short-form clips</strong><div class="mini-note">Host access required.</div><input id="shortUpload" type="file" accept="video/*" multiple></div>
+          <div class="locked-banner viewer-note">Short uploads are managed by the hosts.</div>
+          <div id="shortsGrid" class="shorts-grid" style="margin-top:16px;"></div>
+        </article>
+        <article class="panel"><h3>Shorts lane</h3><div class="short-placeholder"><div><span class="tag">Fast clips</span><strong style="display:block;margin-top:10px;">Quick adventures, reactions, and gaming wins</strong></div></div></article>
+      </div>
+    </section>
+
+    <section class="page" data-page="photos">
+      <div class="section-head"><div><h2>Photo gallery</h2><p>Adventure photos, family fun, and daily memories.</p></div></div>
+      <article class="panel">
+        <div class="upload-zone host-only"><strong>Add photos to the adventure wall</strong><div class="mini-note">Host access required.</div><input id="photoUpload" type="file" accept="image/*" multiple></div>
+        <div class="locked-banner viewer-note">Photo uploads are managed by the hosts.</div>
+        <div id="photoGallery" class="photo-grid" style="margin-top:16px;"></div>
+      </article>
+    </section>
+
+    <section class="page" data-page="journal">
+      <div class="section-head"><div><h2>Adventure journal</h2><p>Stories and memories from Keralee & Kayden.</p></div></div>
+      <div class="two-col">
+        <article class="panel">
+          <div class="host-only">
+            <h3>Write a new post</h3>
+            <form id="journalForm">
+              <div class="form-row">
+                <label>Post title<input type="text" id="journalTitle" placeholder="Today at the park was awesome!" required></label>
+                <label>Adventure date<input type="date" id="journalDate" required></label>
+              </div>
+              <div class="form-row">
+                <label>Main host<select id="journalHost"><option value="Keralee">Keralee</option><option value="Kayden">Kayden</option><option value="Both">Both of us</option></select></label>
+                <label>Adventure type<select id="journalCategory"><option value="Adventure">Adventure</option><option value="Gaming">Gaming</option><option value="Review">Review</option><option value="Daily Life">Daily Life</option><option value="Park Day">Park Day</option></select></label>
+              </div>
+              <label>Story<textarea id="journalStory" placeholder="Write what happened, what was fun, and what you want to remember..." required></textarea></label>
+              <div class="action-row"><button class="btn btn-primary" type="submit">Publish Journal Entry</button></div>
+            </form>
+          </div>
+          <div class="locked-banner viewer-note">Journal publishing is managed by the hosts.</div>
+        </article>
+        <article class="panel"><h3>Published adventures</h3><div id="journalPosts" class="journal-grid"></div></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer">Built for Keralee & Kayden's adventures. Family-safe, moderated, and host-controlled.</footer>
+
+  <!-- FULLSCREEN STREAM VIEWER -->
+  <div id="streamFullscreen" class="stream-fullscreen">
+    <video id="fsVideo" autoplay muted playsinline></video>
+    <button class="fs-close" type="button" id="fsClose">✕ Close</button>
+    <button class="fs-unmute" type="button" id="fsUnmute">🔇 Tap to unmute</button>
+  </div>
+
+  <div id="authModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head"><h3>Sign In</h3><button class="close-btn" type="button" id="closeAuthBtn">&times;</button></div>
+      <div class="tab-row">
+        <button class="tab-btn active" type="button" data-auth-tab="login">Sign In</button>
+        <button class="tab-btn" type="button" data-auth-tab="register">Create Account</button>
+      </div>
+      <form id="authForm">
+        <label>Username<input type="text" id="authUser" placeholder="Enter username" required autocomplete="username"></label>
+        <label>Password<input type="password" id="authPass" placeholder="Enter password" required autocomplete="current-password"></label>
+        <button class="btn btn-primary" type="submit" id="authSubmitBtn">Sign In</button>
+        <div class="error-msg" id="authError"></div>
+        <div class="copied" id="authSuccess"></div>
+      </form>
     </div>
   </div>
-</div>
 
-<!-- ADD STATEMENT MODAL (NEW) -->
-<div class="modal-overlay" id="add-stmt-overlay" onclick="if(event.target.id==='add-stmt-overlay')closeAddStmt()">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">📄 Upload Statement</div>
-      <button class="modal-close" onclick="closeAddStmt()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-field"><label>Full Name *</label><input id="stmt-name"></div>
-      <div class="modal-field"><label>Business Name *</label><input id="stmt-biz"></div>
-      <div class="modal-field"><label>Email *</label><input id="stmt-email" type="email"></div>
-      <div class="modal-field"><label>Phone</label><input id="stmt-phone" type="tel"></div>
-      <div class="modal-field"><label>Current Processor</label><input id="stmt-processor"></div>
-      <div class="modal-field"><label>Monthly Volume</label><input id="stmt-volume"></div>
-      <div class="modal-field"><label>Avg Ticket</label><input id="stmt-ticket"></div>
-      <div class="modal-field"><label>Current Rate</label><input id="stmt-rate"></div>
-      <div class="modal-field"><label>Notes</label><textarea id="stmt-notes"></textarea></div>
-      <div class="modal-field"><label>Statement File (PDF/Image)</label><input type="file" id="stmt-file" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" style="color:var(--t2)"></div>
-      <div id="stmt-error" style="display:none;color:var(--dn);font-family:var(--mono);font-size:10px;padding:6px 0"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="tb-btn" onclick="closeAddStmt()">Cancel</button>
-      <button class="tb-btn lime" onclick="saveNewStmt()">Upload & Save</button>
-    </div>
-  </div>
-</div>
+  <script>
+  (function(){
+    const API='/api';
+    const CHANNELS=['studio-keralee','studio-kayden','studio-together'];
+    const profanityPatterns=[/\bdamn\b/i,/\bhell\b/i,/\bcrap\b/i,/\bwtf\b/i,/\bidiot\b/i,/\bstupid\b/i,/\bshut up\b/i];
 
-<!-- EDIT CAREER MODAL -->
-<div class="modal-overlay" id="edit-career-overlay" onclick="if(event.target.id==='edit-career-overlay')closeEditCareer()">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title" id="edit-career-title">Edit Applicant</div>
-      <button class="modal-close" onclick="closeEditCareer()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="ec-id">
-      <div class="modal-field"><label>Full Name</label><input id="ec-name"></div>
-      <div class="modal-field"><label>Email</label><input id="ec-email" type="email"></div>
-      <div class="modal-field"><label>Phone</label><input id="ec-phone" type="tel"></div>
-      <div class="modal-field"><label>Position</label><input id="ec-position" placeholder="e.g. Sales Rep, Account Manager"></div>
-      <div class="modal-field"><label>Experience (years)</label><input id="ec-exp" type="number"></div>
-      <div class="modal-field"><label>Location</label><input id="ec-location" placeholder="e.g. Denver, CO"></div>
-      <div class="modal-field"><label>LinkedIn URL</label><input id="ec-linkedin" placeholder="https://linkedin.com/in/..."></div>
-      <div class="modal-field"><label>Status</label>
-        <select id="ec-status">
-          <option value="new">New</option>
-          <option value="reviewed">Reviewed</option>
-          <option value="interviewed">Interviewed</option>
-          <option value="hired">Hired</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
-      <div class="modal-field"><label>Assigned To</label><input id="ec-assigned" placeholder="e.g. Marc, HR"></div>
-      <div class="modal-field"><label>Notes</label><textarea id="ec-notes" placeholder="Interview notes, feedback…"></textarea></div>
-    </div>
-    <div class="modal-actions">
-      <button class="tb-btn red" onclick="deleteCareerPermanent()">✕ Delete</button>
-      <button class="tb-btn" onclick="closeEditCareer()">Cancel</button>
-      <button class="tb-btn lime" onclick="saveEditCareer()">Save</button>
-    </div>
-  </div>
-</div>
+    let authToken=sessionStorage.getItem('kk_token')||null;
+    let authRole=sessionStorage.getItem('kk_role')||null;
+    let authUsername=sessionStorage.getItem('kk_username')||null;
+    let authMode='login';
+    const cameraState={};
+    const viewerPCs={};
+    const wsConnections={};
+    const commentInflight={};
+    const commentSnapshots={};
+    const COMMENT_REFRESH_MS=5000;
 
-<!-- CONFIRM DELETE DIALOG (NEW) -->
-<div class="confirm-overlay" id="confirm-overlay" onclick="if(event.target.id==='confirm-overlay')closeConfirm()">
-  <div class="confirm-box">
-    <h3>⚠ Permanent Delete</h3>
-    <p id="confirm-msg">This will permanently remove from the database. This cannot be undone.</p>
-    <div class="confirm-btns">
-      <button class="tb-btn" onclick="closeConfirm()">Cancel</button>
-      <button class="tb-btn red" id="confirm-btn" onclick="executeConfirm()">Delete Forever</button>
-    </div>
-  </div>
-</div>
+    const body=document.body;
+    const pages=Array.from(document.querySelectorAll('.page'));
+    const authBtn=document.getElementById('authBtn');
+    const logoutBtn=document.getElementById('logoutBtn');
+    const userBadge=document.getElementById('userBadge');
+    const authModal=document.getElementById('authModal');
+    const authForm=document.getElementById('authForm');
+    const authUser=document.getElementById('authUser');
+    const authPass=document.getElementById('authPass');
+    const authError=document.getElementById('authError');
+    const authSuccess=document.getElementById('authSuccess');
+    const authSubmitBtn=document.getElementById('authSubmitBtn');
+    const closeAuthBtn=document.getElementById('closeAuthBtn');
+    const journalForm=document.getElementById('journalForm');
+    const journalPosts=document.getElementById('journalPosts');
+    const journalDate=document.getElementById('journalDate');
+    const videoUpload=document.getElementById('videoUpload');
+    const shortUpload=document.getElementById('shortUpload');
+    const photoUpload=document.getElementById('photoUpload');
+    const videoLibrary=document.getElementById('videoLibrary');
+    const shortsGrid=document.getElementById('shortsGrid');
+    const photoGallery=document.getElementById('photoGallery');
 
-<div class="toast" id="toast"></div>
+    function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+    function nl2br(v){return esc(v).replace(/\n/g,'<br>')}
+    function fmtDate(v){if(!v)return'No date';const d=new Date(v+'T00:00:00');return d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'})}
+    function renderEmpty(el,msg){el.innerHTML='<div class="empty-state">'+msg+'</div>'}
 
-<script>
-const API = 'https://nexuspay-visitor-webhook.onrender.com';
-let leads = [];
-let localMeta = {};
-let selected = new Set();
-let currentFilter = 'all';
-let currentSort = { key: 'created_at', dir: 'desc' };
-
-// ── NEW: Tab + secondary data ─────────────────────────────────────
-let activeTab = 'leads';
-let trafficData = [], careersData = [], statementsData = [];
-let trafficSelected = new Set(), careersSelected = new Set(), statementsSelected = new Set();
-let trafficMeta = {}, careersMeta = {}, statementsMeta = {};
-try { trafficMeta = JSON.parse(localStorage.getItem('np_traffic_meta')||'{}'); } catch(e){}
-try { careersMeta = JSON.parse(localStorage.getItem('np_careers_meta')||'{}'); } catch(e){}
-try { statementsMeta = JSON.parse(localStorage.getItem('np_stmts_meta')||'{}'); } catch(e){}
-function saveTrafficMeta(){try{localStorage.setItem('np_traffic_meta',JSON.stringify(trafficMeta));}catch(e){}}
-function saveCareersMeta(){try{localStorage.setItem('np_careers_meta',JSON.stringify(careersMeta));}catch(e){}}
-function saveStmtsMeta(){try{localStorage.setItem('np_stmts_meta',JSON.stringify(statementsMeta));}catch(e){}}
-function getTrafficMeta(id){if(!trafficMeta[id])trafficMeta[id]={notes:''};return trafficMeta[id];}
-function getCareerMeta(id){if(!careersMeta[id])careersMeta[id]={status:'new',assigned_to:'',notes:''};return careersMeta[id];}
-function getStmtMeta(id){if(!statementsMeta[id])statementsMeta[id]={status:'new',assigned_to:'',notes:''};return statementsMeta[id];}
-
-try { localMeta = JSON.parse(localStorage.getItem('np_lead_meta') || '{}'); } catch(e) { localMeta = {}; }
-function saveMeta() { try { localStorage.setItem('np_lead_meta', JSON.stringify(localMeta)); } catch(e) {} }
-function getMeta(id) { if (!localMeta[id]) localMeta[id] = { status:'new', assigned_to:'', notes:'' }; return localMeta[id]; }
-
-// ── FETCH with retry (handles Render free tier cold start) ────
-async function fetchWithRetry(url, opts, retries=3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const resp = await fetch(url, opts);
-      if (resp.ok) return resp;
-      if (resp.status >= 500 && i < retries - 1) { await new Promise(r => setTimeout(r, 2000)); continue; }
-      return resp;
-    } catch(err) {
-      if (i < retries - 1) {
-        toast(i === 0 ? 'Waking up server… hang tight' : 'Retrying…', 'ok');
-        await new Promise(r => setTimeout(r, 3000));
-      } else { throw err; }
+    async function apiFetch(path,opts={}){
+      const headers={'Content-Type':'application/json',...(opts.headers||{})};
+      if(authToken)headers['Authorization']='Bearer '+authToken;
+      const res=await fetch(API+path,{...opts,headers});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.detail||'Request failed');
+      return data;
     }
-  }
-}
 
-// ══════════════════════════════════════════════════════════════
-//  TAB SWITCHING
-// ══════════════════════════════════════════════════════════════
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
-  // Update top bar buttons visibility
-  document.getElementById('btn-add').style.display = (tab === 'leads') ? '' : 'none';
-  document.getElementById('btn-bitrix').style.display = (tab === 'leads') ? '' : 'none';
-  document.getElementById('bulk-bitrix-btn').style.display = (tab === 'leads') ? '' : 'none';
-  document.getElementById('bulk-careers-btn').style.display = (tab === 'leads') ? '' : 'none';
-  document.getElementById('bulk-actions-inner').style.display = (tab === 'leads') ? '' : 'none';
-  // Show add button for statements tab
-  if (tab === 'statements') {
-    document.getElementById('btn-add').style.display = '';
-    document.getElementById('btn-add').innerHTML = '+ <span class="btn-label">Upload Statement</span>';
-    document.getElementById('btn-add').onclick = openAddStmt;
-  } else if (tab === 'leads') {
-    document.getElementById('btn-add').innerHTML = '+ <span class="btn-label">Add Lead</span>';
-    document.getElementById('btn-add').onclick = openAddLead;
-  }
-  // Update search placeholder
-  const placeholders = {leads:'Search name, email, business, phone…',traffic:'Search page, referrer, IP, source…',careers:'Search name, email, position…',statements:'Search name, business, email, processor…'};
-  document.getElementById('search').placeholder = placeholders[tab] || 'Search…';
-  document.getElementById('search').value = '';
-  // Update filters
-  rebuildFilters();
-  // Clear selections
-  selected.clear(); trafficSelected.clear(); careersSelected.clear(); statementsSelected.clear();
-  // Re-render
-  renderActiveTab();
-  updateStats();
-}
-
-function rebuildFilters() {
-  const row = document.getElementById('filters-row');
-  const filterSets = {
-    leads: ['all','new','contacted','qualified','converted','lost'],
-    traffic: ['all'],
-    careers: ['all','new','reviewed','interviewed','hired','rejected'],
-    statements: ['all','new','analyzing','quoted','converted','lost']
-  };
-  const filters = filterSets[activeTab] || ['all'];
-  if (filters.length <= 1) { row.innerHTML = ''; return; }
-  row.innerHTML = filters.map(f => {
-    const label = f === 'all' ? 'All' : f.charAt(0).toUpperCase()+f.slice(1);
-    const isOn = (activeTab === 'leads' ? currentFilter : 'all') === f;
-    return '<div class="filter-chip '+(isOn?'on':'')+'" data-filter="'+f+'" onclick="setFilter(\''+f+'\')">'+label+'</div>';
-  }).join('');
-}
-
-// ── FETCH ALL TABS ────────────────────────────────────────────
-async function fetchLeads() {
-  try {
-    const resp = await fetchWithRetry(API + '/admin/visitors?limit=500');
-    if (!resp.ok) throw new Error(resp.status);
-    leads = await resp.json();
-    leads.forEach(l => getMeta(l.id));
-    checkAutoSync(leads);
-    saveMeta();
-    document.getElementById('tc-leads').textContent = leads.length;
-    if (activeTab === 'leads') { render(); updateStats(); }
-    toast('Loaded ' + leads.length + ' leads', 'ok');
-  } catch(err) { toast('Fetch error: ' + err.message, 'warn'); }
-}
-
-async function fetchTraffic() {
-  try {
-    const resp = await fetchWithRetry(API + '/admin/traffic?limit=500');
-    if (!resp || !resp.ok) return;
-    trafficData = await resp.json();
-    document.getElementById('tc-traffic').textContent = trafficData.length;
-    if (activeTab === 'traffic') renderActiveTab();
-  } catch(e) {}
-}
-
-async function fetchCareers() {
-  try {
-    const resp = await fetchWithRetry(API + '/admin/careers?limit=500');
-    if (!resp || !resp.ok) return;
-    careersData = await resp.json();
-    document.getElementById('tc-careers').textContent = careersData.length;
-    if (activeTab === 'careers') renderActiveTab();
-  } catch(e) {}
-}
-
-async function fetchStatements() {
-  try {
-    const resp = await fetchWithRetry(API + '/admin/statements?limit=500');
-    if (!resp || !resp.ok) return;
-    statementsData = await resp.json();
-    document.getElementById('tc-statements').textContent = statementsData.length;
-    if (activeTab === 'statements') renderActiveTab();
-  } catch(e) {}
-}
-
-async function fetchAll() {
-  await Promise.all([fetchLeads(), fetchTraffic(), fetchCareers(), fetchStatements()]);
-}
-
-function refreshData() { fetchAll(); }
-
-// ── STATS ─────────────────────────────────────────────────────
-function updateStats() {
-  const dataMap = {leads:leads,traffic:trafficData,careers:careersData,statements:statementsData};
-  const data = dataMap[activeTab] || [];
-  document.getElementById('total-count').textContent = data.length;
-  const now = new Date(), todayStr = now.toISOString().split('T')[0], weekAgo = new Date(now - 7*86400000);
-  let t=0, w=0;
-  data.forEach(l => { const d=new Date(l.created_at); if(d.toISOString().split('T')[0]===todayStr)t++; if(d>=weekAgo)w++; });
-  document.getElementById('today-count').textContent = t;
-  document.getElementById('week-count').textContent = w;
-}
-
-// ── FILTER/SORT (original leads logic) ────────────────────────
-function setFilter(f) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('on', c.dataset.filter === f));
-  applyFilters();
-}
-function applyFilters() { renderActiveTab(); }
-
-function getFiltered() {
-  const q = (document.getElementById('search').value||'').toLowerCase();
-  let f = leads.filter(l => {
-    if (q) { const h=[l.full_name,l.business_name,l.email,l.phone,getMeta(l.id).assigned_to,getMeta(l.id).notes].join(' ').toLowerCase(); if(!h.includes(q))return false; }
-    if (currentFilter !== 'all' && getMeta(l.id).status !== currentFilter) return false;
-    return true;
-  });
-  const k=currentSort.key, dir=currentSort.dir==='asc'?1:-1;
-  f.sort((a,b) => {
-    let va = ['status','assigned_to'].includes(k) ? getMeta(a.id)[k]||'' : a[k]||'';
-    let vb = ['status','assigned_to'].includes(k) ? getMeta(b.id)[k]||'' : b[k]||'';
-    if(typeof va==='string')va=va.toLowerCase(); if(typeof vb==='string')vb=vb.toLowerCase();
-    return va<vb?-dir:va>vb?dir:0;
-  });
-  return f;
-}
-
-function sortBy(key) {
-  if(currentSort.key===key) currentSort.dir=currentSort.dir==='asc'?'desc':'asc';
-  else currentSort={key,dir:'asc'};
-  document.querySelectorAll('.sort-arrow').forEach(el=>el.textContent='');
-  const a=document.getElementById('sort-'+key); if(a) a.textContent=currentSort.dir==='asc'?'▲':'▼';
-  renderActiveTab();
-}
-
-// ══════════════════════════════════════════════════════════════
-//  RENDER — dispatches to active tab
-// ══════════════════════════════════════════════════════════════
-function renderActiveTab() {
-  if (activeTab === 'leads') render();
-  else if (activeTab === 'traffic') renderTrafficTab();
-  else if (activeTab === 'careers') renderCareersTab();
-  else if (activeTab === 'statements') renderStatementsTab();
-  updateBulkBar();
-}
-
-function render() {
-  const filtered = getFiltered();
-  const empty = document.getElementById('empty-state');
-  document.getElementById('empty-text').textContent = 'No leads captured yet';
-  document.getElementById('empty-sub').textContent = 'Visitors who complete the AI onboarding will appear here';
-  if (!filtered.length) { document.getElementById('tbody').innerHTML=''; document.getElementById('card-view').innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-  renderTable(filtered);
-  renderCards(filtered);
-  updateBulkBar();
-}
-
-function renderTable(filtered) {
-  // Show leads thead, hide others
-  document.getElementById('thead-leads').style.display = '';
-  document.getElementById('tbody').innerHTML = filtered.map(l => {
-    const m=getMeta(l.id), isSel=selected.has(l.id);
-    const d=new Date(l.created_at), ds=d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    const dur=Math.round((l.session_duration_ms||0)/1000), durS=dur>=60?Math.floor(dur/60)+'m '+(dur%60)+'s':dur+'s';
-    const src=l.utm_source||l.referrer||'direct';
-    return `<tr class="${isSel?'selected':''}" ondblclick="openEdit('${l.id}')">
-      <td><input type="checkbox" class="cb" ${isSel?'checked':''} onchange="toggleSelect('${l.id}')"></td>
-      <td class="cell-name">${esc(l.full_name)}</td>
-      <td class="cell-biz">${esc(l.business_name)}</td>
-      <td class="cell-email"><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></td>
-      <td class="cell-phone"><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></td>
-      <td><span class="status-badge st-${m.status}" onclick="cycleStatus('${l.id}')">${sIcon(m.status)} ${m.status.toUpperCase()}</span></td>
-      <td><span class="assign-badge ${m.assigned_to?'':'none'}" onclick="openEdit('${l.id}')">${esc(m.assigned_to||'unassigned')}</span></td>
-      <td class="cell-date">${ds}</td>
-      <td class="cell-duration col-session">${durS}</td>
-      <td class="cell-source col-source" style="color:${src==='direct'?'var(--t4)':'var(--info)'}\">${esc(src)}</td>
-      <td class="note-cell col-notes" onclick="openEdit('${l.id}')" title="${esc(m.notes)}">${esc(m.notes||'—')}</td>
-      <td style="text-align:center">${m._bitrixId?'<span style="color:var(--teal);font-family:var(--mono);font-size:8px;cursor:help" title="Bitrix24 Lead #'+m._bitrixId+'">⚡ #'+m._bitrixId+'</span>':'<button class="tb-btn" style="font-size:7px;padding:3px 6px;min-height:22px;border-color:rgba(0,200,160,.25);color:var(--teal)" onclick="event.stopPropagation();pushSingleBitrix(\''+l.id+'\')">⚡ Push</button>'}</td>
-      <td class="cell-ip col-ip">${esc(l.ip_address||'—')}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderCards(filtered) {
-  document.getElementById('card-view').innerHTML = filtered.map(l => {
-    const m=getMeta(l.id), isSel=selected.has(l.id);
-    const d=new Date(l.created_at);
-    const ds=d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    const dur=Math.round((l.session_duration_ms||0)/1000), durS=dur>=60?Math.floor(dur/60)+'m '+(dur%60)+'s':dur+'s';
-    return `<div class="lead-card ${isSel?'selected':''}" id="card-${l.id}">
-      <div class="card-top">
-        <input type="checkbox" class="cb card-cb" ${isSel?'checked':''} onchange="toggleSelect('${l.id}')">
-        <div class="card-info">
-          <div class="card-name">${esc(l.full_name)}</div>
-          <div class="card-biz">${esc(l.business_name)}</div>
-        </div>
-        <div class="card-status">
-          <span class="status-badge st-${m.status}" onclick="cycleStatus('${l.id}')">${sIcon(m.status)} ${m.status.toUpperCase()}</span>
-        </div>
-      </div>
-      <div class="card-grid">
-        <div class="card-field"><div class="card-label">Email</div><div class="card-val"><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></div></div>
-        <div class="card-field"><div class="card-label">Phone</div><div class="card-val phone"><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></div></div>
-        <div class="card-field"><div class="card-label">Assigned</div><div class="card-val"><span class="assign-badge ${m.assigned_to?'':'none'}" onclick="openEdit('${l.id}')">${esc(m.assigned_to||'unassigned')}</span></div></div>
-        <div class="card-field"><div class="card-label">Captured</div><div class="card-val" style="font-family:var(--mono);font-size:10px;color:var(--t3)">${ds}</div></div>
-      </div>
-      ${m.notes?'<div style="font-size:10px;color:var(--t3);margin-bottom:8px;padding:6px 8px;background:var(--s2);border-radius:4px;border:1px solid var(--b1)">'+esc(m.notes)+'</div>':''}
-      <div class="card-bottom">
-        <span class="card-meta">${durS} session</span>
-        <span class="card-meta">·</span>
-        <span class="card-meta">${esc(l.ip_address||'')}</span>
-        <div class="card-actions">
-          ${m._bitrixId?'<span style="color:var(--teal);font-family:var(--mono);font-size:8px">⚡ Bitrix #'+m._bitrixId+'</span>':'<button class="tb-btn" style="font-size:8px;padding:5px 8px;border-color:rgba(0,200,160,.25);color:var(--teal)" onclick="pushSingleBitrix(\''+l.id+'\')">⚡ Push</button>'}
-          <button class="tb-btn" style="font-size:8px;padding:5px 8px" onclick="openEdit('${l.id}')">✎ Edit</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function sIcon(s){return{new:'●',contacted:'◐',qualified:'◉',converted:'✓',lost:'✕',reviewed:'◐',interviewed:'◉',hired:'✓',rejected:'✕',analyzing:'◐',quoted:'◉'}[s]||'●';}
-function esc(s){if(!s)return '';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
-function fmtDur(ms){const s=Math.round((ms||0)/1000);return s>=60?Math.floor(s/60)+'m '+(s%60)+'s':s+'s';}
-
-// ── SELECTION ─────────────────────────────────────────────────
-function getActiveSelected(){return activeTab==='leads'?selected:activeTab==='traffic'?trafficSelected:activeTab==='careers'?careersSelected:statementsSelected;}
-function toggleSelect(id){const s=getActiveSelected();if(s.has(id))s.delete(id);else s.add(id);renderActiveTab();}
-function toggleAll(){const a=document.getElementById('cb-all').checked;const s=getActiveSelected();s.clear();if(a){const data=activeTab==='leads'?getFiltered():activeTab==='traffic'?trafficData:activeTab==='careers'?careersData:statementsData;data.forEach(l=>s.add(l.id));}renderActiveTab();}
-function updateBulkBar(){const s=getActiveSelected();const bar=document.getElementById('bulk-bar'),cnt=document.getElementById('bulk-count');if(s.size>0){bar.classList.add('on');cnt.textContent=s.size;}else{bar.classList.remove('on');}}
-
-// ── STATUS CYCLE ──────────────────────────────────────────────
-function cycleStatus(id){
-  if(activeTab==='leads'){const o=['new','contacted','qualified','converted','lost'];const m=getMeta(id);m.status=o[(o.indexOf(m.status)+1)%o.length];saveMeta();}
-  else if(activeTab==='careers'){const o=['new','reviewed','interviewed','hired','rejected'];const m=getCareerMeta(id);m.status=o[(o.indexOf(m.status)+1)%o.length];saveCareersMeta();}
-  else if(activeTab==='statements'){const o=['new','analyzing','quoted','converted','lost'];const m=getStmtMeta(id);m.status=o[(o.indexOf(m.status)+1)%o.length];saveStmtsMeta();}
-  renderActiveTab();
-}
-
-// ── BULK ACTIONS ──────────────────────────────────────────────
-function bulkSetStatus(s){const c=selected.size;selected.forEach(id=>{getMeta(id).status=s;});saveMeta();selected.clear();render();toast('Updated '+c+' leads to '+s.toUpperCase(),'ok');}
-function bulkAssign(){document.getElementById('assign-to').value='';document.getElementById('assign-overlay').classList.add('open');}
-function closeAssignModal(){document.getElementById('assign-overlay').classList.remove('open');}
-function confirmAssign(){const to=document.getElementById('assign-to').value.trim();if(!to)return;const c=selected.size;selected.forEach(id=>{getMeta(id).assigned_to=to;});saveMeta();selected.clear();closeAssignModal();render();toast('Assigned '+c+' leads to '+to,'ok');}
-
-// ══════════════════════════════════════════════════════════════
-//  PERMANENT DELETE (NEW — calls API)
-// ══════════════════════════════════════════════════════════════
-let _confirmAction = null;
-function showConfirm(msg, fn, btnText, title){
-  document.getElementById('confirm-msg').textContent=msg;
-  document.getElementById('confirm-btn').textContent=btnText||'Delete Forever';
-  document.getElementById('confirm-btn').className='tb-btn '+(btnText?'lime':'red');
-  document.querySelector('.confirm-box h3').textContent=title||'⚠ Permanent Delete';
-  _confirmAction=fn;
-  document.getElementById('confirm-overlay').classList.add('open');
-}
-function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('open');_confirmAction=null;}
-function executeConfirm(){if(_confirmAction)_confirmAction();closeConfirm();}
-
-function deleteLeadPermanent(){
-  const id=document.getElementById('edit-id').value;
-  const l=leads.find(x=>x.id===id);
-  const name=l?l.full_name:'this lead';
-  showConfirm('Permanently delete "'+name+'" from the database? Cannot be undone.', async()=>{
-    try{
-      await fetchWithRetry(API+'/admin/visitors/'+id,{method:'DELETE'});
-    }catch(e){}
-    leads=leads.filter(x=>x.id!==id);delete localMeta[id];saveMeta();closeEdit();render();updateStats();
-    document.getElementById('tc-leads').textContent=leads.length;
-    toast('Permanently deleted: '+name,'ok');
-  });
-}
-
-function bulkDeletePermanent(){
-  const s=getActiveSelected();
-  if(!s.size)return;
-  const endpoints={leads:'/admin/visitors/bulk-delete',traffic:'/admin/traffic/bulk-delete',careers:'/admin/careers/bulk-delete',statements:'/admin/statements/bulk-delete'};
-  showConfirm('Permanently delete '+s.size+' records from the database? Cannot be undone.', async()=>{
-    const ids=[...s];
-    try{
-      await fetchWithRetry(API+endpoints[activeTab],{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
-    }catch(e){}
-    if(activeTab==='leads'){leads=leads.filter(x=>!s.has(x.id));ids.forEach(id=>delete localMeta[id]);saveMeta();selected.clear();}
-    else if(activeTab==='traffic'){trafficData=trafficData.filter(x=>!s.has(x.id));trafficSelected.clear();}
-    else if(activeTab==='careers'){careersData=careersData.filter(x=>!s.has(x.id));careersSelected.clear();}
-    else if(activeTab==='statements'){statementsData=statementsData.filter(x=>!s.has(x.id));statementsSelected.clear();}
-    renderActiveTab();updateStats();
-    document.getElementById('tc-'+activeTab).textContent=(activeTab==='leads'?leads:activeTab==='traffic'?trafficData:activeTab==='careers'?careersData:statementsData).length;
-    toast('Permanently deleted '+ids.length+' records','ok');
-  });
-}
-
-// ── EDIT MODAL (original) ─────────────────────────────────────
-function openEdit(id){
-  const l=leads.find(x=>x.id===id);if(!l)return;const m=getMeta(id);
-  document.getElementById('edit-id').value=id;
-  document.getElementById('edit-title').textContent='Edit — '+l.full_name;
-  document.getElementById('edit-name').value=l.full_name||'';
-  document.getElementById('edit-biz').value=l.business_name||'';
-  document.getElementById('edit-email').value=l.email||'';
-  document.getElementById('edit-phone').value=l.phone||'';
-  document.getElementById('edit-status').value=m.status;
-  document.getElementById('edit-assigned').value=m.assigned_to||'';
-  document.getElementById('edit-notes').value=m.notes||'';
-  document.getElementById('edit-overlay').classList.add('open');
-}
-function closeEdit(){document.getElementById('edit-overlay').classList.remove('open');}
-function saveEdit(){
-  const id=document.getElementById('edit-id').value;const l=leads.find(x=>x.id===id);if(!l)return;
-  l.full_name=document.getElementById('edit-name').value.trim();
-  l.business_name=document.getElementById('edit-biz').value.trim();
-  l.email=document.getElementById('edit-email').value.trim();
-  l.phone=document.getElementById('edit-phone').value.trim();
-  const m=getMeta(id);
-  m.status=document.getElementById('edit-status').value;
-  m.assigned_to=document.getElementById('edit-assigned').value.trim();
-  m.notes=document.getElementById('edit-notes').value.trim();
-  saveMeta();closeEdit();render();toast('Updated: '+l.full_name,'ok');
-}
-
-// ── CSV EXPORT ────────────────────────────────────────────────
-function exportCSV(){
-  if(activeTab!=='leads'){
-    const dataMap={traffic:trafficData,careers:careersData,statements:statementsData};
-    const d=dataMap[activeTab];if(!d||!d.length)return toast('No data to export','warn');
-    const keys=Object.keys(d[0]);
-    const csv=[keys.join(','),...d.map(r=>keys.map(k=>'"'+String(r[k]||'').replace(/"/g,'""')+'"').join(','))].join('\n');
-    const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='NexusPay_'+activeTab+'_'+new Date().toISOString().split('T')[0]+'.csv';a.click();URL.revokeObjectURL(url);
-    return toast('Exported '+d.length+' '+activeTab+' records','ok');
-  }
-  const f=getFiltered();if(!f.length)return toast('No leads to export','warn');
-  const h=['Name','Business','Email','Phone','Status','Assigned To','Notes','Captured','Session (sec)','Source','UTM Medium','UTM Campaign','IP','User Agent','Page URL'];
-  const rows=f.map(l=>{const m=getMeta(l.id);return[l.full_name,l.business_name,l.email,l.phone,m.status,m.assigned_to,m.notes,new Date(l.created_at).toLocaleString(),Math.round((l.session_duration_ms||0)/1000),l.utm_source||'direct',l.utm_medium||'',l.utm_campaign||'',l.ip_address||'',l.user_agent||'',l.page_url||''].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"');});
-  const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='NexusPay_Leads_'+new Date().toISOString().split('T')[0]+'.csv';a.click();URL.revokeObjectURL(url);
-  toast('Exported '+f.length+' leads to CSV','ok');
-}
-
-// ── TOAST ─────────────────────────────────────────────────────
-let _tt;function toast(msg,type){const el=document.getElementById('toast');el.textContent=msg;el.className='toast on '+(type||'');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),3500);}
-
-// ══════════════════════════════════════════════════════════════
-//  ADD LEAD (original — exact copy)
-// ══════════════════════════════════════════════════════════════
-function openAddLead(){
-  ['add-name','add-biz','add-email','add-phone','add-assigned','add-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  document.getElementById('add-status').value='new';
-  document.getElementById('add-error').style.display='none';
-  const autoPush=document.getElementById('add-push-bitrix');
-  if(autoPush)autoPush.checked=!!_bitrixSettings.autoSync;
-  document.getElementById('add-overlay').classList.add('open');
-}
-function closeAddLead(){document.getElementById('add-overlay').classList.remove('open');}
-
-async function saveNewLead(){
-  const err=document.getElementById('add-error');err.style.display='none';
-  const name=(document.getElementById('add-name').value||'').trim();
-  const biz=(document.getElementById('add-biz').value||'').trim();
-  const email=(document.getElementById('add-email').value||'').trim();
-  const phone=(document.getElementById('add-phone').value||'').trim();
-  const status=document.getElementById('add-status').value;
-  const assigned=(document.getElementById('add-assigned').value||'').trim();
-  const notes=(document.getElementById('add-notes').value||'').trim();
-  const pushBitrix=document.getElementById('add-push-bitrix').checked;
-
-  if(!name||!biz||!email){err.textContent='Name, business, and email are required.';err.style.display='block';return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Enter a valid email address.';err.style.display='block';return;}
-
-  try{
-    const resp=await fetchWithRetry(API+'/webhook/visitor',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({full_name:name,business_name:biz,email:email,phone:phone,referrer:'manual-entry',page_url:'lead-dashboard'})
+    /* ── Auth ──────────────────────────────────────────── */
+    function syncAuthUI(){
+      const loggedIn=!!authToken;
+      const isHost=authRole==='host';
+      body.classList.toggle('role-host',isHost);
+      body.classList.toggle('role-viewer',loggedIn&&!isHost);
+      authBtn.classList.toggle('hidden',loggedIn);
+      logoutBtn.classList.toggle('hidden',!loggedIn);
+      if(loggedIn){userBadge.textContent=(isHost?'🔑 ':'👤 ')+authUsername;userBadge.classList.remove('hidden')}
+      else{userBadge.classList.add('hidden')}
+    }
+    function openAuth(){authModal.classList.add('show');authError.textContent='';authSuccess.textContent=''}
+    function closeAuth(){authModal.classList.remove('show')}
+    authBtn.addEventListener('click',openAuth);
+    closeAuthBtn.addEventListener('click',closeAuth);
+    authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuth()});
+    document.querySelectorAll('[data-auth-tab]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        authMode=btn.getAttribute('data-auth-tab');
+        document.querySelectorAll('[data-auth-tab]').forEach(b=>b.classList.toggle('active',b===btn));
+        authSubmitBtn.textContent=authMode==='login'?'Sign In':'Create Account';
+        authError.textContent='';authSuccess.textContent='';
+      });
     });
-    if(resp.ok){
-      const data=await resp.json();
-      const newLead={id:data.id,full_name:name,business_name:biz,email:email,phone:phone,created_at:new Date().toISOString(),session_duration_ms:0,ip_address:'manual',utm_source:'manual',referrer:'lead-dashboard',page_url:'lead-dashboard'};
-      leads.unshift(newLead);
-      const m=getMeta(data.id);
-      m.status=status;m.assigned_to=assigned;m.notes=notes;
-      saveMeta();
-      if(pushBitrix){await pushLeadToBitrix(newLead);}
-      closeAddLead();render();updateStats();
-      document.getElementById('tc-leads').textContent=leads.length;
-      toast('Lead added: '+name+(pushBitrix?' + pushed to Bitrix24':''),'ok');
-    }else{throw new Error('Server '+resp.status);}
-  }catch(e){
-    const fakeId='local-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
-    const newLead={id:fakeId,full_name:name,business_name:biz,email:email,phone:phone,created_at:new Date().toISOString(),session_duration_ms:0,ip_address:'manual',utm_source:'manual'};
-    leads.unshift(newLead);
-    const m=getMeta(fakeId);m.status=status;m.assigned_to=assigned;m.notes=notes;
-    saveMeta();
-    if(pushBitrix){await pushLeadToBitrix(newLead);}
-    closeAddLead();render();updateStats();
-    document.getElementById('tc-leads').textContent=leads.length;
-    toast('Lead added locally: '+name+' (DB sync pending)','warn');
-  }
-}
+    authForm.addEventListener('submit',async e=>{
+      e.preventDefault();authError.textContent='';authSuccess.textContent='';
+      try{
+        const endpoint=authMode==='login'?'/auth/login':'/auth/register';
+        const data=await apiFetch(endpoint,{method:'POST',body:JSON.stringify({username:authUser.value.trim(),password:authPass.value})});
+        authToken=data.token;authRole=data.role;authUsername=data.username;
+        sessionStorage.setItem('kk_token',authToken);sessionStorage.setItem('kk_role',authRole);sessionStorage.setItem('kk_username',authUsername);
+        syncAuthUI();authSuccess.textContent='Signed in as '+authUsername+' ('+authRole+')';authForm.reset();
+        setTimeout(closeAuth,800);loadAllData();
+      }catch(err){authError.textContent=err.message}
+    });
+    logoutBtn.addEventListener('click',()=>{
+      authToken=null;authRole=null;authUsername=null;
+      sessionStorage.removeItem('kk_token');sessionStorage.removeItem('kk_role');sessionStorage.removeItem('kk_username');
+      syncAuthUI();
+    });
 
-// ══════════════════════════════════════════════════════════════
-//  BITRIX24 CRM INTEGRATION (original — exact copy)
-// ══════════════════════════════════════════════════════════════
-var _bitrixSettings={autoSync:false,assignedBy:1,sourceId:'WEB'};
-try{_bitrixSettings=JSON.parse(localStorage.getItem('np_bitrix')||'{}');if(!_bitrixSettings.assignedBy)_bitrixSettings={autoSync:false,assignedBy:1,sourceId:'WEB'};}catch(e){_bitrixSettings={autoSync:false,assignedBy:1,sourceId:'WEB'};}
-
-function saveBitrixConfig(){try{localStorage.setItem('np_bitrix',JSON.stringify(_bitrixSettings));}catch(e){}}
-
-function openBitrixSettings(){
-  document.getElementById('bitrix-url').value='Proxied through your Render backend (pre-configured)';
-  document.getElementById('bitrix-assigned').value=_bitrixSettings.assignedBy||1;
-  document.getElementById('bitrix-source').value=_bitrixSettings.sourceId||'WEB';
-  document.getElementById('bitrix-auto').checked=!!_bitrixSettings.autoSync;
-  document.getElementById('bitrix-status').style.display='none';
-  document.getElementById('bitrix-overlay').classList.add('open');
-}
-function closeBitrixSettings(){document.getElementById('bitrix-overlay').classList.remove('open');}
-
-function saveBitrixSettings(){
-  _bitrixSettings.assignedBy=parseInt(document.getElementById('bitrix-assigned').value)||1;
-  _bitrixSettings.sourceId=(document.getElementById('bitrix-source').value||'').trim()||'WEB';
-  _bitrixSettings.autoSync=document.getElementById('bitrix-auto').checked;
-  saveBitrixConfig();
-  closeBitrixSettings();
-  toast('Bitrix24 settings saved'+(_bitrixSettings.autoSync?' — auto-sync ON':''),'ok');
-}
-
-function _bitrixProxy(method){return API+'/proxy/bitrix/'+method;}
-
-async function pushLeadToBitrix(lead){
-  const endpoint=_bitrixProxy('crm.lead.add');
-  const m=getMeta(lead.id);
-  const nameParts=(lead.full_name||'').split(' ');
-  const firstName=nameParts[0]||'';
-  const lastName=nameParts.slice(1).join(' ')||'';
-  const fields={
-    TITLE:(lead.business_name||lead.full_name)+' — NexusPay Lead',
-    NAME:firstName,LAST_NAME:lastName||firstName,
-    COMPANY_TITLE:lead.business_name||'',STATUS_ID:'NEW',OPENED:'Y',
-    ASSIGNED_BY_ID:_bitrixSettings.assignedBy||1,
-    SOURCE_ID:_bitrixSettings.sourceId||'WEB',
-    SOURCE_DESCRIPTION:'NexusPay Intelligence Landing Page',
-    PHONE:[{VALUE:lead.phone||'',VALUE_TYPE:'WORK'}],
-    EMAIL:[{VALUE:lead.email||'',VALUE_TYPE:'WORK'}],
-    COMMENTS:'Captured via NexusPay Lead Command Center\n'+
-      'Status: '+(m.status||'new').toUpperCase()+'\n'+
-      (m.assigned_to?'Assigned to: '+m.assigned_to+'\n':'')+
-      (m.notes?'Notes: '+m.notes+'\n':'')+
-      'Session: '+Math.round((lead.session_duration_ms||0)/1000)+'s\n'+
-      'Source: '+(lead.utm_source||lead.referrer||'direct')+'\n'+
-      'IP: '+(lead.ip_address||'unknown')+'\n'+
-      'Captured: '+new Date(lead.created_at).toLocaleString(),
-    UTM_SOURCE:lead.utm_source||'nexuspay',
-    UTM_MEDIUM:lead.utm_medium||'landing',
-    UTM_CAMPAIGN:lead.utm_campaign||'intelligence',
-  };
-  try{
-    const resp=await fetchWithRetry(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:fields,params:{REGISTER_SONET_EVENT:'Y'}})});
-    const data=await resp.json();
-    if(data.result){m._bitrixId=data.result;m._bitrixSyncedAt=Date.now();saveMeta();return true;}
-    else{console.error('Bitrix24 error:',data);toast('Bitrix24 error: '+(data.error_description||data.error||'Unknown'),'warn');return false;}
-  }catch(err){console.error('Bitrix24 push failed:',err);toast('Bitrix24 connection failed: '+err.message,'warn');return false;}
-}
-
-async function pushSingleBitrix(id){
-  const l=leads.find(x=>x.id===id);
-  if(!l){toast('Lead not found','warn');return;}
-  toast('Pushing to Bitrix24…','ok');
-  const ok=await pushLeadToBitrix(l);
-  if(ok)toast('✓ Pushed to Bitrix24: '+l.full_name,'ok');
-  render();
-}
-
-async function bulkPushBitrix(){
-  if(!selected.size){toast('Select leads first','warn');return;}
-  const ids=[...selected];let ok=0,fail=0;
-  toast('Pushing '+ids.length+' leads to Bitrix24…','ok');
-  for(const id of ids){
-    const l=leads.find(x=>x.id===id);if(!l)continue;
-    const m=getMeta(id);if(m._bitrixId){ok++;continue;}
-    const result=await pushLeadToBitrix(l);if(result)ok++;else fail++;
-  }
-  selected.clear();render();
-  toast('Bitrix24: '+ok+' pushed'+(fail?' · '+fail+' failed':''),'ok');
-}
-
-async function testBitrixConnection(){
-  const st=document.getElementById('bitrix-status');
-  st.style.display='block';st.style.background='rgba(64,144,240,.1)';st.style.color='var(--info)';st.textContent='Testing connection via proxy…';
-  try{
-    const resp=await fetchWithRetry(_bitrixProxy('crm.lead.fields'));
-    const data=await resp.json();
-    if(data.result){
-      const fieldCount=Object.keys(data.result).length;
-      st.style.background='rgba(32,192,96,.1)';st.style.color='var(--up)';
-      st.textContent='✓ Connected to nexuspay.bitrix24.com! '+fieldCount+' lead fields available. CRM is ready.';
-    }else{
-      st.style.background='rgba(224,64,80,.1)';st.style.color='var(--dn)';
-      st.textContent='✕ Error: '+(data.error_description||data.error||'Invalid response');
+    /* ── Routing ───────────────────────────────────────── */
+    function routeFromHash(){const raw=location.hash.replace(/^#\/?/,'');return raw?raw.replace(/\//g,'-'):'home'}
+    function setRoute(route,pushHash){
+      pages.forEach(p=>p.classList.toggle('active',p.getAttribute('data-page')===route));
+      if(pushHash!==false)location.hash='#/'+route.replace(/-/g,'/');
+      window.scrollTo({top:0,behavior:'smooth'});
+      if(route.startsWith('studio-'))loadComments(route);
+      if(CHANNELS.includes(route))checkStreamStatus(route);
     }
-  }catch(err){
-    st.style.background='rgba(224,64,80,.1)';st.style.color='var(--dn)';
-    st.textContent='✕ Connection failed: '+err.message+'. Server may be waking up — try again in 30 seconds.';
-  }
-}
+    function handleHashRoute(){const r=routeFromHash();const exists=pages.some(p=>p.getAttribute('data-page')===r);setRoute(exists?r:'home',false)}
+    window.addEventListener('hashchange',handleHashRoute);
 
-var _lastSeenLeadIds=new Set();
-function checkAutoSync(freshLeads){
-  if(!_bitrixSettings.autoSync)return;
-  freshLeads.forEach(l=>{
-    if(!_lastSeenLeadIds.has(l.id)){
-      const m=getMeta(l.id);
-      if(!m._bitrixId){
-        // Only auto-push if lead has real contact info (not just a page visit)
-        const hasEmail=l.email&&!l.email.includes('noemail@');
-        const hasBiz=l.business_name&&l.business_name!=='Your Business';
-        const hasPhone=l.phone&&l.phone.length>=7;
-        const isManual=l.utm_source==='manual'||l.referrer==='manual-entry';
-        if((hasEmail&&hasBiz&&hasPhone)||isManual){
-          pushLeadToBitrix(l).then(ok=>{
-            if(ok)toast('⚡ Auto-synced to Bitrix24: '+l.full_name,'ok');
-          });
-        }
+    /* ── Comments ──────────────────────────────────────── */
+    async function loadComments(channel,force){
+      const listNode=document.querySelector('[data-comment-list="'+channel+'"]');
+      if(!listNode||commentInflight[channel])return;
+      commentInflight[channel]=true;
+      try{
+        const items=await apiFetch('/comments/'+channel);
+        const snapshot=JSON.stringify(items.map(item=>[item.id,item.author,item.message,item.timestamp]));
+        if(!force&&commentSnapshots[channel]===snapshot)return;
+        commentSnapshots[channel]=snapshot;
+        if(!items.length){renderEmpty(listNode,'No comments yet. Be the first!');return}
+        listNode.innerHTML=items.map(item=>
+          '<article class="comment-item"><div class="comment-body">'+
+          '<strong>'+esc(item.author)+'</strong>'+
+          '<small>'+esc(item.timestamp)+'</small>'+
+          '<div style="margin-top:8px;line-height:1.7;">'+nl2br(item.message)+'</div>'+
+          (authRole==='host'?'<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-comment="'+item.id+'" data-channel="'+channel+'">Delete</button></div>':'')+
+          '</div></article>'
+        ).join('');
+      }catch(_){
+        if(!commentSnapshots[channel])renderEmpty(listNode,'Could not load comments.')
+      }finally{
+        commentInflight[channel]=false;
       }
     }
-  });
-  _lastSeenLeadIds=new Set(freshLeads.map(l=>l.id));
-}
+    document.querySelectorAll('[data-comment-form]').forEach(form=>{
+      form.addEventListener('submit',async e=>{
+        e.preventDefault();
+        const channel=form.getAttribute('data-comment-form');
+        const feedback=document.querySelector('[data-comment-feedback="'+channel+'"]');
+        const author=form.author.value.trim();const message=form.message.value.trim();
+        if(!author||!message)return;
+        if(profanityPatterns.some(p=>p.test(message))){feedback.textContent='Comment blocked. Family-safe language required.';return}
+        try{await apiFetch('/comments/'+channel,{method:'POST',body:JSON.stringify({author,message})});form.reset();feedback.textContent='Comment posted!';loadComments(channel,true)}
+        catch(err){feedback.textContent=err.message}
+      });
+    });
 
-// ══════════════════════════════════════════════════════════════
-//  TRAFFIC TAB RENDERER
-// ══════════════════════════════════════════════════════════════
-function renderTrafficTab(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
-  let filtered=trafficData.filter(d=>{
-    if(q){const h=Object.values(d).join(' ').toLowerCase();if(!h.includes(q))return false;}
-    return true;
-  });
-  const empty=document.getElementById('empty-state');
-  if(!filtered.length){
-    document.getElementById('tbody').innerHTML='';document.getElementById('card-view').innerHTML='';
-    document.getElementById('empty-text').textContent='No traffic data yet';
-    document.getElementById('empty-sub').textContent='Website page views will appear here in real-time';
-    empty.style.display='block';
-    document.getElementById('thead-leads').style.display='none';
-    return;
-  }
-  empty.style.display='none';
-  document.getElementById('thead-leads').style.display='none';
-  document.getElementById('tbody').innerHTML=
-    '<tr><th style="width:30px"><input type="checkbox" class="cb" id="cb-all" onchange="toggleAll()"></th><th>Page</th><th>Referrer</th><th>IP</th><th>Device</th><th>Browser</th><th>Country</th><th class="col-extra">City</th><th class="col-source">Source</th><th class="col-session">Session</th><th>Time</th></tr>'+
-    filtered.map(d=>{
-      const isSel=trafficSelected.has(d.id);
-      return `<tr class="${isSel?'selected':''}">
-        <td><input type="checkbox" class="cb" ${isSel?'checked':''} onchange="toggleSelect('${d.id}')"></td>
-        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:10px;color:var(--cyan)">${esc(d.page_url||'—')}</td>
-        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:10px;color:var(--t2)">${esc(d.referrer||'direct')}</td>
-        <td class="cell-ip">${esc(d.ip_address||'—')}</td>
-        <td style="font-size:10px;color:var(--t2)">${esc(d.device_type||'—')}</td>
-        <td style="font-size:10px;color:var(--t2)">${esc(d.browser||'—')}</td>
-        <td style="font-size:10px;color:var(--t2)">${esc(d.country||'—')}</td>
-        <td class="col-extra" style="font-size:10px;color:var(--t3)">${esc(d.city||'—')}</td>
-        <td class="cell-source col-source" style="color:${(d.utm_source||'direct')==='direct'?'var(--t4)':'var(--info)'}\">${esc(d.utm_source||'direct')}</td>
-        <td class="cell-duration col-session">${fmtDur(d.session_duration_ms)}</td>
-        <td class="cell-date">${fmtDate(d.created_at)}</td>
-      </tr>`;
-    }).join('');
-  // Mobile cards
-  document.getElementById('card-view').innerHTML=filtered.map(d=>{
-    const isSel=trafficSelected.has(d.id);
-    return `<div class="lead-card ${isSel?'selected':''}">
-      <div class="card-top">
-        <input type="checkbox" class="cb card-cb" ${isSel?'checked':''} onchange="toggleSelect('${d.id}')">
-        <div class="card-info"><div class="card-name" style="font-size:12px">${esc(d.page_url||'—')}</div><div class="card-biz">${esc(d.referrer||'direct')}</div></div>
-      </div>
-      <div class="card-grid">
-        <div class="card-field"><div class="card-label">IP</div><div class="card-val" style="font-family:var(--mono);font-size:10px;color:var(--t4)">${esc(d.ip_address||'—')}</div></div>
-        <div class="card-field"><div class="card-label">Device</div><div class="card-val">${esc(d.device_type||'—')}</div></div>
-        <div class="card-field"><div class="card-label">Country</div><div class="card-val">${esc(d.country||'—')}</div></div>
-        <div class="card-field"><div class="card-label">Time</div><div class="card-val" style="font-family:var(--mono);font-size:10px;color:var(--t3)">${fmtDate(d.created_at)}</div></div>
-      </div>
-    </div>`;
-  }).join('');
-}
+    /* ── Journal ───────────────────────────────────────── */
+    async function loadJournal(){
+      try{
+        const items=await apiFetch('/journal');
+        if(!items.length){renderEmpty(journalPosts,'No adventures published yet.');return}
+        journalPosts.innerHTML=items.map(item=>
+          '<article class="journal-item"><div class="journal-body">'+
+          '<strong>'+esc(item.title)+'</strong>'+
+          '<div class="muted" style="margin-bottom:8px;">'+fmtDate(item.date)+' • '+esc(item.host)+' • '+esc(item.category)+'</div>'+
+          '<div style="line-height:1.7;">'+nl2br(item.story)+'</div>'+
+          (authRole==='host'?'<div class="action-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" type="button" data-delete-journal="'+item.id+'">Delete</button></div>':'')+
+          '</div></article>'
+        ).join('');
+      }catch(_){renderEmpty(journalPosts,'Could not load journal.')}
+    }
+    if(journalForm){
+      journalForm.addEventListener('submit',async e=>{
+        e.preventDefault();
+        try{
+          await apiFetch('/journal',{method:'POST',body:JSON.stringify({
+            title:document.getElementById('journalTitle').value.trim(),
+            date:document.getElementById('journalDate').value,
+            host:document.getElementById('journalHost').value,
+            category:document.getElementById('journalCategory').value,
+            story:document.getElementById('journalStory').value.trim(),
+          })});journalForm.reset();if(journalDate)journalDate.valueAsDate=new Date();loadJournal();
+        }catch(err){alert(err.message)}
+      });
+    }
 
-// ══════════════════════════════════════════════════════════════
-//  CAREERS TAB RENDERER
-// ══════════════════════════════════════════════════════════════
-function renderCareersTab(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
-  let filtered=careersData.filter(d=>{
-    if(q){const h=[d.full_name,d.email,d.position,d.location].join(' ').toLowerCase();if(!h.includes(q))return false;}
-    if(currentFilter!=='all'&&getCareerMeta(d.id).status!==currentFilter)return false;
-    return true;
-  });
-  const empty=document.getElementById('empty-state');
-  if(!filtered.length){
-    document.getElementById('tbody').innerHTML='';document.getElementById('card-view').innerHTML='';
-    document.getElementById('empty-text').textContent='No career applications yet';
-    document.getElementById('empty-sub').textContent='Applications will appear here';
-    empty.style.display='block';document.getElementById('thead-leads').style.display='none';return;
-  }
-  empty.style.display='none';document.getElementById('thead-leads').style.display='none';
-  document.getElementById('tbody').innerHTML=
-    '<tr><th style="width:30px"><input type="checkbox" class="cb" id="cb-all" onchange="toggleAll()"></th><th>Name</th><th>Email</th><th>Phone</th><th>Position</th><th>Exp</th><th>Location</th><th>Status</th><th>Resume</th><th class="col-extra">LinkedIn</th><th>Applied</th><th class="col-ip">IP</th></tr>'+
-    filtered.map(d=>{
-      const m=getCareerMeta(d.id),isSel=careersSelected.has(d.id);
-      const hasResume=d.has_resume||d.resume_filename;
-      return `<tr class="${isSel?'selected':''}" ondblclick="openEditCareer('${d.id}')">
-        <td><input type="checkbox" class="cb" ${isSel?'checked':''} onchange="toggleSelect('${d.id}')"></td>
-        <td class="cell-name">${esc(d.full_name)}</td>
-        <td class="cell-email"><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></td>
-        <td class="cell-phone"><a href="tel:${esc(d.phone)}">${esc(d.phone||'—')}</a></td>
-        <td style="font-size:11px;color:var(--t1)">${esc(d.position||'—')}</td>
-        <td style="font-size:10px;color:var(--t2)">${d.experience_years!=null?d.experience_years+'y':'—'}</td>
-        <td style="font-size:10px;color:var(--t2)">${esc(d.location||'—')}</td>
-        <td><span class="status-badge st-${m.status}" onclick="cycleStatus('${d.id}')">${sIcon(m.status)} ${m.status.toUpperCase()}</span></td>
-        <td>${hasResume?'<a href="'+API+'/admin/careers/'+d.id+'/file" target="_blank" class="tb-btn" style="font-size:7px;padding:3px 6px;min-height:22px;border-color:rgba(144,96,240,.25);color:var(--purple);text-decoration:none">📄 Resume</a>':'<span style="font-size:9px;color:var(--t4)">—</span>'}</td>
-        <td class="col-extra">${d.linkedin_url?'<a href="'+esc(d.linkedin_url)+'" target="_blank" style="color:var(--cyan);font-size:9px;font-family:var(--mono)">View</a>':'—'}</td>
-        <td class="cell-date">${fmtDate(d.created_at)}</td>
-        <td class="cell-ip col-ip">${esc(d.ip_address||'—')}</td>
-      </tr>`;
-    }).join('');
-  document.getElementById('card-view').innerHTML=filtered.map(d=>{
-    const m=getCareerMeta(d.id),isSel=careersSelected.has(d.id);
-    const hasResume=d.has_resume||d.resume_filename;
-    return `<div class="lead-card ${isSel?'selected':''}">
-      <div class="card-top">
-        <input type="checkbox" class="cb card-cb" ${isSel?'checked':''} onchange="toggleSelect('${d.id}')">
-        <div class="card-info"><div class="card-name">${esc(d.full_name)}</div><div class="card-biz">${esc(d.position||'No position specified')}</div></div>
-        <div class="card-status"><span class="status-badge st-${m.status}" onclick="cycleStatus('${d.id}')">${sIcon(m.status)} ${m.status.toUpperCase()}</span></div>
-      </div>
-      <div class="card-grid">
-        <div class="card-field"><div class="card-label">Email</div><div class="card-val"><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></div></div>
-        <div class="card-field"><div class="card-label">Phone</div><div class="card-val phone"><a href="tel:${esc(d.phone)}">${esc(d.phone||'—')}</a></div></div>
-        <div class="card-field"><div class="card-label">Experience</div><div class="card-val">${d.experience_years!=null?d.experience_years+' years':'—'}</div></div>
-        <div class="card-field"><div class="card-label">Location</div><div class="card-val">${esc(d.location||'—')}</div></div>
-      </div>
-      <div class="card-bottom">
-        <span class="card-meta">${fmtDate(d.created_at)}</span>
-        <div class="card-actions">
-          ${hasResume?'<a href="'+API+'/admin/careers/'+d.id+'/file" target="_blank" class="tb-btn" style="font-size:8px;padding:5px 8px;border-color:rgba(144,96,240,.25);color:var(--purple);text-decoration:none">📄 Resume</a>':''}
-          <button class="tb-btn" style="font-size:8px;padding:5px 8px" onclick="openEditCareer('${d.id}')">✎ Edit</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
+    /* ── WHIP Broadcast (host → Cloudflare) ────────────── */
+    async function whipBroadcast(whipUrl, mediaStream){
+      console.log('[WHIP] Starting broadcast to:', whipUrl);
+      var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
+      var vt=mediaStream.getVideoTracks()[0];
+      var at=mediaStream.getAudioTracks()[0];
+      if(vt)pc.addTransceiver(vt,{direction:'sendonly'});
+      if(at)pc.addTransceiver(at,{direction:'sendonly'});
+      console.log('[WHIP] Tracks - video:',!!vt,'audio:',!!at);
+      await pc.setLocalDescription(await pc.createOffer());
+      await new Promise(function(r){if(pc.iceGatheringState==='complete'){r();return}var d=false;var t=setTimeout(function(){if(!d){d=true;r()}},5000);pc.addEventListener('icegatheringstatechange',function(){if(!d&&pc.iceGatheringState==='complete'){d=true;clearTimeout(t);r()}})});
+      console.log('[WHIP] Sending offer, SDP length:',pc.localDescription.sdp.length);
+      var resp=await fetch(whipUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
+      if(!resp.ok){var et=await resp.text();console.error('[WHIP] Error:',resp.status,et);throw new Error('WHIP:'+resp.status)}
+      var ans=await resp.text();
+      console.log('[WHIP] Got answer, length:',ans.length);
+      await pc.setRemoteDescription({type:'answer',sdp:ans});
+      pc.onconnectionstatechange=function(){console.log('[WHIP] State:',pc.connectionState)};
+      pc.oniceconnectionstatechange=function(){console.log('[WHIP] ICE:',pc.iceConnectionState)};
+      console.log('[WHIP] Connected, state:',pc.connectionState,'ice:',pc.iceConnectionState);
+      return pc;
+    }
 
-// ══════════════════════════════════════════════════════════════
-//  STATEMENTS TAB RENDERER (mirrors Leads layout + file view)
-// ══════════════════════════════════════════════════════════════
-function renderStatementsTab(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
-  let filtered=statementsData.filter(d=>{
-    if(q){const h=[d.full_name,d.business_name,d.email,d.phone,d.processor].join(' ').toLowerCase();if(!h.includes(q))return false;}
-    if(currentFilter!=='all'&&getStmtMeta(d.id).status!==currentFilter)return false;
-    return true;
-  });
-  const empty=document.getElementById('empty-state');
-  if(!filtered.length){
-    document.getElementById('tbody').innerHTML='';document.getElementById('card-view').innerHTML='';
-    document.getElementById('empty-text').textContent='No uploaded statements yet';
-    document.getElementById('empty-sub').textContent='Merchant statement uploads will appear here';
-    empty.style.display='block';document.getElementById('thead-leads').style.display='none';return;
-  }
-  empty.style.display='none';document.getElementById('thead-leads').style.display='none';
-  document.getElementById('tbody').innerHTML=
-    '<tr><th style="width:30px"><input type="checkbox" class="cb" id="cb-all" onchange="toggleAll()"></th><th>Name</th><th>Business</th><th>Email</th><th>Phone</th><th>Processor</th><th>Volume</th><th class="col-session">Avg Ticket</th><th class="col-source">Rate</th><th>Status</th><th>File</th><th>Uploaded</th><th class="col-ip">IP</th></tr>'+
-    filtered.map(d=>{
-      const m=getStmtMeta(d.id),isSel=statementsSelected.has(d.id);
-      const hasFile=d.statement_url&&d.statement_url!=='[R2_NOT_CONFIGURED]';
-      return `<tr class="${isSel?'selected':''}">
-        <td><input type="checkbox" class="cb" ${isSel?'checked':''} onchange="toggleSelect('${d.id}')"></td>
-        <td class="cell-name">${esc(d.full_name)}</td>
-        <td class="cell-biz">${esc(d.business_name)}</td>
-        <td class="cell-email"><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></td>
-        <td class="cell-phone"><a href="tel:${esc(d.phone)}">${esc(d.phone||'—')}</a></td>
-        <td style="font-size:10px;color:var(--t1)">${esc(d.processor||'—')}</td>
-        <td style="font-size:10px;color:var(--t2)">${esc(d.monthly_volume||'—')}</td>
-        <td class="col-session" style="font-size:10px;color:var(--t2)">${esc(d.avg_ticket||'—')}</td>
-        <td class="col-source" style="font-size:10px;color:var(--t2)">${esc(d.current_rate||'—')}</td>
-        <td><span class="status-badge st-${m.status}" onclick="cycleStatus('${d.id}')">${sIcon(m.status)} ${m.status.toUpperCase()}</span></td>
-        <td>${hasFile?'<a href="'+esc(d.statement_url)+'" target="_blank" class="tb-btn" style="font-size:7px;padding:3px 6px;min-height:22px;border-color:rgba(32,208,240,.25);color:var(--cyan);text-decoration:none">📄 View</a>':'<span style="font-size:9px;color:var(--t4)">—</span>'}</td>
-        <td class="cell-date">${fmtDate(d.created_at)}</td>
-        <td class="cell-ip col-ip">${esc(d.ip_address||'—')}</td>
-      </tr>`;
-    }).join('');
-  document.getElementById('card-view').innerHTML=filtered.map(d=>{
-    const m=getStmtMeta(d.id),isSel=statementsSelected.has(d.id);
-    const hasFile=d.statement_url&&d.statement_url!=='[R2_NOT_CONFIGURED]';
-    return `<div class="lead-card ${isSel?'selected':''}">
-      <div class="card-top">
-        <input type="checkbox" class="cb card-cb" ${isSel?'checked':''} onchange="toggleSelect('${d.id}')">
-        <div class="card-info"><div class="card-name">${esc(d.full_name)}</div><div class="card-biz">${esc(d.business_name)}</div></div>
-        <div class="card-status"><span class="status-badge st-${m.status}" onclick="cycleStatus('${d.id}')">${sIcon(m.status)} ${m.status.toUpperCase()}</span></div>
-      </div>
-      <div class="card-grid">
-        <div class="card-field"><div class="card-label">Email</div><div class="card-val"><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></div></div>
-        <div class="card-field"><div class="card-label">Phone</div><div class="card-val phone"><a href="tel:${esc(d.phone)}">${esc(d.phone||'—')}</a></div></div>
-        <div class="card-field"><div class="card-label">Processor</div><div class="card-val">${esc(d.processor||'—')}</div></div>
-        <div class="card-field"><div class="card-label">Volume</div><div class="card-val">${esc(d.monthly_volume||'—')}</div></div>
-        <div class="card-field"><div class="card-label">Avg Ticket</div><div class="card-val">${esc(d.avg_ticket||'—')}</div></div>
-        <div class="card-field"><div class="card-label">Rate</div><div class="card-val">${esc(d.current_rate||'—')}</div></div>
-      </div>
-      <div class="card-bottom">
-        <span class="card-meta">${fmtDate(d.created_at)}</span>
-        <div class="card-actions">
-          ${hasFile?'<a href="'+esc(d.statement_url)+'" target="_blank" class="tb-btn" style="font-size:8px;padding:5px 8px;border-color:rgba(32,208,240,.25);color:var(--cyan);text-decoration:none">📄 View File</a>':''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
+    /* ── WHEP Playback (viewer ← Cloudflare) with retry ── */
+    async function whepPlayback(whepUrl,videoEl,retries){
+      retries=retries||0;
+      console.log('[WHEP] Connecting attempt',retries+1,'to:',whepUrl);
+      var existing=viewerPCs[whepUrl];
+      if(existing&&existing!=='connecting'&&existing!=='retrying'&&typeof existing.close==='function'){
+        try{existing.close()}catch(_){}
+      }
+      viewerPCs[whepUrl]='connecting';
+      var pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});
+      viewerPCs[whepUrl]=pc;
+      pc.addTransceiver('video',{direction:'recvonly'});
+      pc.addTransceiver('audio',{direction:'recvonly'});
+      var combinedStream=new MediaStream();
+      pc.ontrack=function(event){
+        console.log('[WHEP] Got track:',event.track.kind,'readyState:',event.track.readyState,'enabled:',event.track.enabled);
+        if(!combinedStream.getTracks().some(function(t){return t.id===event.track.id})){
+          combinedStream.addTrack(event.track);
+        }
+        if(videoEl.srcObject!==combinedStream){
+          videoEl.srcObject=combinedStream;
+          videoEl.dataset.whepConnectedAt=Date.now();
+        }
+        videoEl.play().catch(function(e){console.log('[WHEP] play():',e.message)});
+      };
+      videoEl.onloadedmetadata=function(){console.log('[WHEP] METADATA:',videoEl.videoWidth+'x'+videoEl.videoHeight)};
+      videoEl.onplaying=function(){console.log('[WHEP] PLAYING:',videoEl.videoWidth+'x'+videoEl.videoHeight,' readyState:',videoEl.readyState)};
+      pc.onconnectionstatechange=function(){
+        console.log('[WHEP] State:',pc.connectionState);
+        if(pc.connectionState==='failed'||pc.connectionState==='closed'||pc.connectionState==='disconnected'){
+          if(viewerPCs[whepUrl]===pc)delete viewerPCs[whepUrl];
+        }
+      };
+      await pc.setLocalDescription(await pc.createOffer());
+      await new Promise(function(r){if(pc.iceGatheringState==='complete'){r();return}var d=false;var t=setTimeout(function(){if(!d){d=true;r()}},5000);pc.addEventListener('icegatheringstatechange',function(){if(!d&&pc.iceGatheringState==='complete'){d=true;clearTimeout(t);r()}})});
+      try{
+        var resp=await fetch(whepUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/sdp'},body:pc.localDescription.sdp});
+        if(!resp.ok){var et=await resp.text();console.error('[WHEP] Error:',resp.status,et);
+          if(resp.status===409&&retries<8){
+            console.log('[WHEP] 409 = host not broadcasting yet, retry in 4s...');
+            pc.close();
+            viewerPCs[whepUrl]='retrying';
+            setTimeout(function(){
+              if(viewerPCs[whepUrl]==='retrying'){
+                whepPlayback(whepUrl,videoEl,retries+1).catch(function(){});
+              }
+            },4000);
+            return pc;
+          }
+          throw new Error('WHEP:'+resp.status)}
+        var ans=await resp.text();
+        console.log('[WHEP] Got answer, length:',ans.length);
+        if(pc.signalingState==='closed'){return pc}
+        await pc.setRemoteDescription({type:'answer',sdp:ans});
+        viewerPCs[whepUrl]=pc;
+        if(retries<2){setTimeout(function(){if(videoEl.srcObject&&videoEl.videoWidth===0){console.log('[WHEP] Black screen detected after 8s, retrying...');delete viewerPCs[whepUrl];whepPlayback(whepUrl,videoEl,retries+1).catch(function(){})}},8000)}
+      }catch(err){
+        console.warn('[WHEP] Failed:',err);
+        try{pc.close()}catch(_){}
+        if(viewerPCs[whepUrl]===pc)delete viewerPCs[whepUrl];
+      }
+      return pc;
+    }
 
-// ══════════════════════════════════════════════════════════════
-//  ADD STATEMENT (with file upload to R2 via API)
-// ══════════════════════════════════════════════════════════════
-function openAddStmt(){
-  ['stmt-name','stmt-biz','stmt-email','stmt-phone','stmt-processor','stmt-volume','stmt-ticket','stmt-rate','stmt-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  document.getElementById('stmt-file').value='';
-  document.getElementById('stmt-error').style.display='none';
-  document.getElementById('add-stmt-overlay').classList.add('open');
-}
-function closeAddStmt(){document.getElementById('add-stmt-overlay').classList.remove('open');}
+    /* ── Streaming ─────────────────────────────────────── */
+    async function checkStreamStatus(channel){
+      try{
+        const data=await apiFetch('/streams/'+channel);
+        updateLiveUI(channel,data.is_live,data.whep_url);
+        if(data.is_live&&data.whep_url&&authRole!=='host'){
+          var vv=document.querySelector('[data-viewer-video="'+channel+'"]');
+          if(vv&&vv.srcObject&&vv.srcObject.active){
+            var existingPc=viewerPCs[data.whep_url];
+            if(existingPc&&existingPc!=='connecting'&&existingPc!=='retrying'){
+              var now=Date.now();
+              var needsReconnect=false;
+              if(vv.videoWidth===0){
+                var connectedAt=parseInt(vv.dataset.whepConnectedAt||now);
+                if(now-connectedAt>3000)needsReconnect=true;
+              }
+              var lastTime=vv.dataset.lastCurrentTime;
+              if(lastTime!==undefined&&lastTime!==''){
+                if((vv.currentTime-parseFloat(lastTime))<0.05){
+                  if(!vv.dataset.stalledSince)vv.dataset.stalledSince=now;
+                  if(now-parseInt(vv.dataset.stalledSince)>1500)needsReconnect=true;
+                }else{
+                  vv.dataset.stalledSince='';
+                }
+              }
+              vv.dataset.lastCurrentTime=vv.currentTime;
+              if(needsReconnect){
+                console.log('[POLL] Stream dead/frozen, forcing reconnect');
+                try{existingPc.close()}catch(_){}
+                delete viewerPCs[data.whep_url];
+                vv.srcObject=null;
+                vv.dataset.whepConnectedAt=now;
+                vv.dataset.stalledSince='';
+                vv.dataset.lastCurrentTime='';
+                viewerPCs[data.whep_url]='connecting';
+                whepPlayback(data.whep_url,vv).catch(function(){});
+              }
+            }
+          }
+        }
+      }catch(_){}
+    }
 
-async function saveNewStmt(){
-  const err=document.getElementById('stmt-error');err.style.display='none';
-  const name=(document.getElementById('stmt-name').value||'').trim();
-  const biz=(document.getElementById('stmt-biz').value||'').trim();
-  const email=(document.getElementById('stmt-email').value||'').trim();
-  if(!name||!biz||!email){err.textContent='Name, business, and email are required.';err.style.display='block';return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Enter a valid email address.';err.style.display='block';return;}
+    function updateLiveUI(channel,isLive,whepUrl,force){
+      document.querySelectorAll('[data-live-status="'+channel+'"]').forEach(el=>{
+        el.textContent=isLive?'🔴 LIVE':'Offline';
+        el.style.background=isLive?'rgba(255,58,58,.2)':'';
+        el.style.color=isLive?'#ff6b6b':'';
+      });
+      const badge=document.querySelector('[data-live-badge="'+channel+'"]');
+      if(badge)badge.classList.toggle('show',isLive);
+      const viewerVideo=document.querySelector('[data-viewer-video="'+channel+'"]');
+      const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+      if(isLive&&whepUrl&&authRole!=='host'){
+        if(viewerVideo){
+          viewerVideo.style.display='block';
+          var vc=document.querySelector('[data-viewer-controls="'+channel+'"]');
+          if(vc)vc.classList.add('show');
+          var existingPc=viewerPCs[whepUrl];
+          var isSentinel=existingPc==='connecting'||existingPc==='retrying';
+          var streamDead=!viewerVideo.srcObject||!viewerVideo.srcObject.active;
+          var pcEstablished=existingPc&&!isSentinel&&typeof existingPc.connectionState==='string'&&
+                            existingPc.connectionState!=='new'&&existingPc.connectionState!=='connecting';
+          var pcDead=pcEstablished&&(existingPc.connectionState==='failed'||existingPc.connectionState==='closed'||existingPc.connectionState==='disconnected');
+          var streamDeadWithRealPc=streamDead&&pcEstablished&&!pcDead;
+          if(!existingPc||pcDead||streamDeadWithRealPc){
+            if(existingPc&&!isSentinel&&typeof existingPc.close==='function'){try{existingPc.close()}catch(_){}}
+            delete viewerPCs[whepUrl];
+            viewerPCs[whepUrl]='connecting';
+            whepPlayback(whepUrl,viewerVideo).catch(function(e){console.warn('WHEP error:',e);delete viewerPCs[whepUrl]});
+          }
+        }
+        if(placeholder)placeholder.style.display='none';
+      }else if(!isLive&&authRole!=='host'){
+        if(viewerVideo){
+          if(!force&&viewerVideo.srcObject&&viewerVideo.srcObject.active){return}
+          Object.keys(viewerPCs).forEach(function(url){
+            var p=viewerPCs[url];
+            if(p&&p!=='connecting'&&p!=='retrying'&&typeof p.close==='function'){try{p.close()}catch(_){}}
+            delete viewerPCs[url];
+          });
+          viewerVideo.style.display='none';
+          viewerVideo.srcObject=null;
+          var vc2=document.querySelector('[data-viewer-controls="'+channel+'"]');
+          if(vc2)vc2.classList.remove('show');
+        }
+        if(placeholder)placeholder.style.display='grid';
+      }
+    }
 
-  const fileInput=document.getElementById('stmt-file');
-  const hasFile=fileInput.files&&fileInput.files.length>0;
+    async function checkAllStreams(){for(const ch of CHANNELS)await checkStreamStatus(ch)}
 
-  if(hasFile){
-    // Multipart upload
-    const fd=new FormData();
-    fd.append('full_name',name);
-    fd.append('business_name',biz);
-    fd.append('email',email);
-    fd.append('phone',(document.getElementById('stmt-phone').value||'').trim());
-    fd.append('processor',(document.getElementById('stmt-processor').value||'').trim());
-    fd.append('monthly_volume',(document.getElementById('stmt-volume').value||'').trim());
-    fd.append('avg_ticket',(document.getElementById('stmt-ticket').value||'').trim());
-    fd.append('current_rate',(document.getElementById('stmt-rate').value||'').trim());
-    fd.append('notes',(document.getElementById('stmt-notes').value||'').trim());
-    fd.append('file',fileInput.files[0]);
+    /* ── Camera (host) ─────────────────────────────────── */
+    async function startCamera(channel){
+      try{
+        const state=cameraState[channel];
+        if(state&&state.cameraOff&&state.pc&&state.pc.connectionState!=='closed'){
+          const newStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+          const newVideoTrack=newStream.getVideoTracks()[0];
+          if(newVideoTrack){
+            const sender=state.pc.getSenders().find(function(s){return s.track&&s.track.kind==='video'});
+            if(sender)await sender.replaceTrack(newVideoTrack);
+            state.stream.getVideoTracks().forEach(function(t){state.stream.removeTrack(t)});
+            state.stream.addTrack(newVideoTrack);
+            const video=document.querySelector('[data-camera-preview="'+channel+'"]');
+            const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+            if(video){video.srcObject=state.stream;video.play().catch(function(){})}
+            if(placeholder)placeholder.style.display='none';
+            state.cameraOff=false;
+          }
+          return;
+        }
+        if(!state){
+          const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+          cameraState[channel]={stream,pc:null,cameraOff:false};
+        }
+        const video=document.querySelector('[data-camera-preview="'+channel+'"]');
+        const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+        if(video)video.srcObject=cameraState[channel].stream;
+        if(placeholder)placeholder.style.display='none';
+      }catch(_){alert('Camera access was not allowed.')}
+    }
 
-    try{
-      toast('Uploading statement to R2…','ok');
-      const resp=await fetchWithRetry(API+'/webhook/statement-upload',{method:'POST',body:fd});
-      if(resp&&resp.ok){
-        const data=await resp.json();
-        statementsData.unshift({id:data.id,full_name:name,business_name:biz,email,phone:(document.getElementById('stmt-phone').value||'').trim(),processor:(document.getElementById('stmt-processor').value||'').trim(),monthly_volume:(document.getElementById('stmt-volume').value||'').trim(),avg_ticket:(document.getElementById('stmt-ticket').value||'').trim(),current_rate:(document.getElementById('stmt-rate').value||'').trim(),statement_filename:data.filename,statement_url:data.statement_url,created_at:new Date().toISOString(),ip_address:'manual'});
-        document.getElementById('tc-statements').textContent=statementsData.length;
-        closeAddStmt();renderActiveTab();updateStats();
-        toast('Statement uploaded: '+name,'ok');
-      }else{throw new Error('Server '+(resp?resp.status:'error'));}
-    }catch(e){toast('Upload failed: '+e.message,'warn');}
-  }else{
-    // JSON-only (no file)
-    const payload={full_name:name,business_name:biz,email,phone:(document.getElementById('stmt-phone').value||'').trim(),processor:(document.getElementById('stmt-processor').value||'').trim(),monthly_volume:(document.getElementById('stmt-volume').value||'').trim(),avg_ticket:(document.getElementById('stmt-ticket').value||'').trim(),current_rate:(document.getElementById('stmt-rate').value||'').trim(),notes:(document.getElementById('stmt-notes').value||'').trim()};
-    try{
-      const resp=await fetchWithRetry(API+'/webhook/statement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      if(resp&&resp.ok){
-        const data=await resp.json();
-        statementsData.unshift({id:data.id,...payload,created_at:new Date().toISOString(),ip_address:'manual'});
-        document.getElementById('tc-statements').textContent=statementsData.length;
-        closeAddStmt();renderActiveTab();updateStats();
-        toast('Statement added: '+name,'ok');
-      }else{throw new Error('Server '+(resp?resp.status:'error'));}
-    }catch(e){toast('Failed: '+e.message,'warn');}
-  }
-}
+    function stopCamera(channel){
+      const state=cameraState[channel];
+      if(!state)return;
+      const isStreaming=state.pc&&state.pc.connectionState!=='closed';
+      if(isStreaming){
+        state.stream.getVideoTracks().forEach(function(t){t.stop()});
+        state.cameraOff=true;
+        const video=document.querySelector('[data-camera-preview="'+channel+'"]');
+        const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+        if(video)video.srcObject=null;
+        if(placeholder)placeholder.style.display='grid';
+      }else{
+        if(state.stream)state.stream.getTracks().forEach(function(t){t.stop()});
+        if(state.pc){state.pc.close();state.pc=null}
+        delete cameraState[channel];
+        const video=document.querySelector('[data-camera-preview="'+channel+'"]');
+        const placeholder=document.querySelector('[data-camera-placeholder="'+channel+'"]');
+        const badge=document.querySelector('[data-live-badge="'+channel+'"]');
+        if(video)video.srcObject=null;
+        if(placeholder)placeholder.style.display='grid';
+        if(badge)badge.classList.remove('show');
+        const goBtn=document.querySelector('[data-go-live="'+channel+'"]');
+        const stopBtn=document.querySelector('[data-stop-live="'+channel+'"]');
+        if(goBtn)goBtn.classList.remove('hidden');
+        if(stopBtn)stopBtn.classList.add('hidden');
+      }
+    }
 
-// ══════════════════════════════════════════════════════════════
-//  EDIT CAREER MODAL
-// ══════════════════════════════════════════════════════════════
-function openEditCareer(id){
-  const d=careersData.find(x=>x.id===id);if(!d)return;
-  const m=getCareerMeta(id);
-  document.getElementById('ec-id').value=id;
-  document.getElementById('edit-career-title').textContent='Edit — '+(d.full_name||'Applicant');
-  document.getElementById('ec-name').value=d.full_name||'';
-  document.getElementById('ec-email').value=d.email||'';
-  document.getElementById('ec-phone').value=d.phone||'';
-  document.getElementById('ec-position').value=d.position||'';
-  document.getElementById('ec-exp').value=d.experience_years||'';
-  document.getElementById('ec-location').value=d.location||'';
-  document.getElementById('ec-linkedin').value=d.linkedin_url||'';
-  document.getElementById('ec-status').value=m.status;
-  document.getElementById('ec-assigned').value=m.assigned_to||'';
-  document.getElementById('ec-notes').value=m.notes||'';
-  document.getElementById('edit-career-overlay').classList.add('open');
-}
-function closeEditCareer(){document.getElementById('edit-career-overlay').classList.remove('open');}
-function saveEditCareer(){
-  const id=document.getElementById('ec-id').value;
-  const d=careersData.find(x=>x.id===id);if(!d)return;
-  d.full_name=document.getElementById('ec-name').value.trim();
-  d.email=document.getElementById('ec-email').value.trim();
-  d.phone=document.getElementById('ec-phone').value.trim();
-  d.position=document.getElementById('ec-position').value.trim();
-  d.experience_years=parseInt(document.getElementById('ec-exp').value)||null;
-  d.location=document.getElementById('ec-location').value.trim();
-  d.linkedin_url=document.getElementById('ec-linkedin').value.trim();
-  const m=getCareerMeta(id);
-  m.status=document.getElementById('ec-status').value;
-  m.assigned_to=document.getElementById('ec-assigned').value.trim();
-  m.notes=document.getElementById('ec-notes').value.trim();
-  saveCareersMeta();closeEditCareer();renderActiveTab();
-  toast('Updated: '+d.full_name,'ok');
-}
-function deleteCareerPermanent(){
-  const id=document.getElementById('ec-id').value;
-  const d=careersData.find(x=>x.id===id);
-  const name=d?d.full_name:'this applicant';
-  showConfirm('Permanently delete "'+name+'"?', async()=>{
-    try{await fetchWithRetry(API+'/admin/careers/'+id,{method:'DELETE'});}catch(e){}
-    careersData=careersData.filter(x=>x.id!==id);delete careersMeta[id];saveCareersMeta();
-    closeEditCareer();renderActiveTab();updateStats();
-    document.getElementById('tc-careers').textContent=careersData.length;
-    toast('Deleted: '+name,'ok');
-  });
-}
+    async function goLive(channel){
+      if(!authToken||authRole!=='host'){openAuth();return}
+      try{
+        if(!cameraState[channel])await startCamera(channel);
+        const data=await apiFetch('/streams/'+channel+'/start',{method:'POST'});
+        // Broadcast camera to Cloudflare via WHIP
+        const pc=await whipBroadcast(data.whip_url,cameraState[channel].stream);
+        cameraState[channel].pc=pc;
+        const goBtn=document.querySelector('[data-go-live="'+channel+'"]');
+        const stopBtn=document.querySelector('[data-stop-live="'+channel+'"]');
+        if(goBtn)goBtn.classList.add('hidden');
+        if(stopBtn)stopBtn.classList.remove('hidden');
+        updateLiveUI(channel,true,data.whep_url);
+      }catch(err){alert('Could not start stream: '+err.message)}
+    }
 
-// ══════════════════════════════════════════════════════════════
-//  MOVE TO CAREERS
-// ══════════════════════════════════════════════════════════════
-async function bulkMoveToCareers(){
-  if(!selected.size){toast('Select leads first','warn');return;}
-  const ids=[...selected];
-  showConfirm('Move '+ids.length+' lead(s) to the Careers tab?', async()=>{
-    try{
-      const resp=await fetchWithRetry(API+'/admin/visitors/move-to-careers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
-      if(!resp||!resp.ok)throw new Error('Server '+(resp?resp.status:'error'));
-      leads=leads.filter(x=>!selected.has(x.id));
-      ids.forEach(id=>delete localMeta[id]);
-      saveMeta();selected.clear();
-      document.getElementById('tc-leads').textContent=leads.length;
-      render();updateStats();
-      fetchCareers();
-      toast('Moved '+ids.length+' to Careers','ok');
-    }catch(e){toast('Move failed: '+e.message+'. Did you deploy the new main.py?','warn');}
-  }, 'Move to Careers', '💼 Move to Careers');
-}
+    async function stopLive(channel){
+      try{
+        await apiFetch('/streams/'+channel+'/stop',{method:'POST'});
+        if(cameraState[channel]&&cameraState[channel].pc){cameraState[channel].pc.close();cameraState[channel].pc=null}
+        const goBtn=document.querySelector('[data-go-live="'+channel+'"]');
+        const stopBtn=document.querySelector('[data-stop-live="'+channel+'"]');
+        if(goBtn)goBtn.classList.remove('hidden');
+        if(stopBtn)stopBtn.classList.add('hidden');
+        updateLiveUI(channel,false,null);
+      }catch(err){alert('Could not stop stream: '+err.message)}
+    }
 
-async function moveSingleToCareers(){
-  const id=document.getElementById('edit-id').value;
-  const l=leads.find(x=>x.id===id);
-  const name=l?l.full_name:'this lead';
-  showConfirm('Move "'+name+'" to the Careers tab?', async()=>{
-    try{
-      const resp=await fetchWithRetry(API+'/admin/visitors/move-to-careers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:[id]})});
-      if(!resp||!resp.ok)throw new Error('Server '+(resp?resp.status:'error'));
-      leads=leads.filter(x=>x.id!==id);
-      delete localMeta[id];saveMeta();closeEdit();
-      document.getElementById('tc-leads').textContent=leads.length;
-      render();updateStats();
-      fetchCareers();
-      toast('Moved to Careers: '+name,'ok');
-    }catch(e){toast('Move failed: '+e.message+'. Did you deploy the new main.py?','warn');}
-  }, 'Move to Careers', '💼 Move to Careers');
-}
+    /* ── WebSocket ─────────────────────────────────────── */
+    function connectWs(channel){
+      if(wsConnections[channel])return;
+      const wsUrl='wss://k-k-adventures-1.onrender.com/ws/comments/'+channel;
+      console.log('[WS] Attempting:',wsUrl);
+      try{
+        const ws=new WebSocket(wsUrl);
+        ws.onopen=()=>{console.log('[WS] Connected:',channel)};
+        ws.onmessage=event=>{
+          const msg=JSON.parse(event.data);
+          if(msg.type==='comment_created'||msg.type==='comment_deleted'||msg.type==='comments_cleared')loadComments(channel,true);
+          if(msg.type==='stream_started'){console.log('[WS] Stream started:',channel);updateLiveUI(channel,true,msg.whep_url,true)}
+          if(msg.type==='stream_stopped'){console.log('[WS] Stream stopped:',channel);updateLiveUI(channel,false,null,true)}
+        };
+        ws.onclose=(ev)=>{console.warn('[WS] Closed:',channel,'code:',ev.code,'reason:',ev.reason,'clean:',ev.wasClean);delete wsConnections[channel];setTimeout(()=>connectWs(channel),3000)};
+        ws.onerror=(e)=>console.warn('[WS] Error:',channel,'readyState:',ws.readyState);
+        wsConnections[channel]=ws;
+      }catch(e){console.warn('[WS] Failed to construct:',channel,e)}
+    }
 
-// ══════════════════════════════════════════════════════════════
-//  BOOT
-// ══════════════════════════════════════════════════════════════
-fetchAll().then(()=>{_lastSeenLeadIds=new Set(leads.map(l=>l.id));});
-setInterval(fetchAll, 30000);
-</script>
+    /* ── File uploads ──────────────────────────────────── */
+    function makeVideoCard(file){const url=URL.createObjectURL(file);return'<article class="media-item"><video controls src="'+url+'"></video><div class="media-meta"><strong>'+esc(file.name)+'</strong><div class="muted">'+(Math.round(file.size/1024/1024*10)/10)+' MB</div></div></article>'}
+    function makePhotoCard(file){const url=URL.createObjectURL(file);return'<article class="photo-item"><img src="'+url+'" alt="Photo"><div class="media-meta"><strong>'+esc(file.name)+'</strong></div></article>'}
+    function makeShortCard(file){const url=URL.createObjectURL(file);return'<article class="short-item"><video controls playsinline src="'+url+'"></video><div class="short-meta"><strong>'+esc(file.name)+'</strong><div class="muted">'+(Math.round(file.size/1024/1024*10)/10)+' MB</div></div></article>'}
+    if(videoUpload)videoUpload.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(files.length)videoLibrary.innerHTML=files.map(f=>makeVideoCard(f)).join('')});
+    if(shortUpload)shortUpload.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(files.length)shortsGrid.innerHTML=files.map(f=>makeShortCard(f)).join('')});
+    if(photoUpload)photoUpload.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(files.length)photoGallery.innerHTML=files.map(f=>makePhotoCard(f)).join('')});
+
+    /* ── Click delegation ──────────────────────────────── */
+    document.addEventListener('click',async e=>{
+      const routeBtn=e.target.closest('[data-route]');if(routeBtn)return setRoute(routeBtn.getAttribute('data-route'));
+      const dc=e.target.closest('[data-delete-comment]');
+      if(dc){try{await apiFetch('/comments/'+dc.getAttribute('data-channel')+'/'+dc.getAttribute('data-delete-comment'),{method:'DELETE'});loadComments(dc.getAttribute('data-channel'))}catch(err){alert(err.message)}return}
+      const dj=e.target.closest('[data-delete-journal]');
+      if(dj){try{await apiFetch('/journal/'+dj.getAttribute('data-delete-journal'),{method:'DELETE'});loadJournal()}catch(err){alert(err.message)}return}
+      const cb=e.target.closest('[data-clear-comments]');
+      if(cb){try{await apiFetch('/comments/'+cb.getAttribute('data-clear-comments'),{method:'DELETE'});loadComments(cb.getAttribute('data-clear-comments'))}catch(_){}return}
+      const um=e.target.closest('[data-unmute]');if(um){var ch=um.getAttribute('data-unmute');var vv=document.querySelector('[data-viewer-video="'+ch+'"]');if(vv){vv.muted=!vv.muted;console.log('[AUDIO] muted=',vv.muted);um.textContent=vv.muted?'🔇 Unmute':'🔊 Sound on'}return}
+      const hm=e.target.closest('[data-host-mute]');if(hm){var hch=hm.getAttribute('data-host-mute');var hv=document.querySelector('[data-camera-preview="'+hch+'"]');if(hv){hv.muted=!hv.muted;hm.textContent=hv.muted?'🔇 Mute':'🔊 Unmute'}return}
+      const ex=e.target.closest('[data-expand]');if(ex){var ech=ex.getAttribute('data-expand');expandStream(ech);return}
+      const po=e.target.closest('[data-popout-stream]');if(po){var pch=po.getAttribute('data-popout-stream');popoutStream(pch);return}
+      const cs=e.target.closest('[data-camera-start]');if(cs)return startCamera(cs.getAttribute('data-camera-start'));
+      const cx=e.target.closest('[data-camera-stop]');if(cx)return stopCamera(cx.getAttribute('data-camera-stop'));
+      const gl=e.target.closest('[data-go-live]');if(gl)return goLive(gl.getAttribute('data-go-live'));
+      const sl=e.target.closest('[data-stop-live]');if(sl)return stopLive(sl.getAttribute('data-stop-live'));
+    });
+
+    /* ── Fullscreen & Pop-out viewer ──────────────────── */
+    var currentFsChannel=null;
+    var fsOverlay=document.getElementById('streamFullscreen');
+    var fsVideo=document.getElementById('fsVideo');
+    var fsClose=document.getElementById('fsClose');
+    var fsUnmute=document.getElementById('fsUnmute');
+
+    function expandStream(channel){
+      var src=document.querySelector('[data-camera-preview="'+channel+'"]');
+      if(!src||!src.srcObject||!src.srcObject.active){src=document.querySelector('[data-viewer-video="'+channel+'"]')}
+      if(!src||!src.srcObject||!src.srcObject.active){alert('No active stream to expand.');return}
+      fsVideo.srcObject=src.srcObject.clone?src.srcObject.clone():src.srcObject;
+      fsVideo.muted=true;
+      fsVideo.play().catch(function(){});
+      if(src.paused)src.play().catch(function(){});
+      fsOverlay.classList.add('show');
+      fsUnmute.textContent='🔇 Tap to unmute';
+      currentFsChannel=channel;
+    }
+    fsClose.addEventListener('click',function(){
+      fsOverlay.classList.remove('show');
+      fsVideo.srcObject=null;
+      if(currentFsChannel){
+        var src=document.querySelector('[data-camera-preview="'+currentFsChannel+'"]');
+        if(!src||!src.srcObject)src=document.querySelector('[data-viewer-video="'+currentFsChannel+'"]');
+        if(src&&src.srcObject&&src.paused)src.play().catch(function(){});
+      }
+      currentFsChannel=null;
+    });
+    fsUnmute.addEventListener('click',function(){
+      fsVideo.muted=!fsVideo.muted;
+      fsUnmute.textContent=fsVideo.muted?'🔇 Tap to unmute':'🔊 Sound on';
+    });
+
+    function popoutStream(channel){
+      var src=document.querySelector('[data-camera-preview="'+channel+'"]');
+      if(!src||!src.srcObject||!src.srcObject.active){src=document.querySelector('[data-viewer-video="'+channel+'"]')}
+      if(!src||!src.srcObject||!src.srcObject.active){alert('No active stream to pop out.');return}
+      var w=window.open('','_blank','width=960,height=540');
+      if(!w)return;
+      w.document.title='Live: '+channel.replace('studio-','');
+      w.document.body.style.cssText='margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh';
+      var v=w.document.createElement('video');
+      v.style.cssText='width:100%;height:100%;object-fit:contain';
+      v.autoplay=true;v.muted=false;v.playsInline=true;
+      v.srcObject=src.srcObject.clone?src.srcObject.clone():src.srcObject;
+      w.document.body.appendChild(v);
+      v.play().catch(function(){v.muted=true;v.play()});
+      if(src.paused)src.play().catch(function(){});
+    }
+
+    /* ── Init ──────────────────────────────────────────── */
+    function loadAllData(){loadJournal();CHANNELS.forEach(ch=>{loadComments(ch,true);connectWs(ch)});checkAllStreams()}
+    if(journalDate)journalDate.valueAsDate=new Date();
+    renderEmpty(videoLibrary,'No videos uploaded yet.');
+    renderEmpty(shortsGrid,'No Shorts uploaded yet.');
+    renderEmpty(photoGallery,'No photos uploaded yet.');
+    syncAuthUI();handleHashRoute();loadAllData();
+    setInterval(checkAllStreams,15000);
+    setInterval(()=>CHANNELS.forEach(ch=>loadComments(ch)),COMMENT_REFRESH_MS);
+  })();
+  </script>
 </body>
 </html>
